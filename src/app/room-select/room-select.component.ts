@@ -96,6 +96,7 @@ export class RoomSelectComponent implements OnInit {
         //server replies connection is successiful
         case "connection":
           if (message.success) {
+            this.settingsService.setUserId(message.id);
             this.requestRooms();
           }
           break;

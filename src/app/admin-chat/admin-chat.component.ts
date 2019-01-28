@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 
 //connection to users.
 var userRtc: webkitRTCPeerConnection;
+var userId: string;
 
 @Component({
   selector: 'app-admin-chat',
@@ -40,7 +41,7 @@ export class AdminChatComponent implements OnInit {
       //determine what to do with the replying message.
       switch (message.type) {
         case "offer":
-          this.onOffer(message.offer, message.name);
+          this.onOffer(message.offer, message.userId);
           break;
         case "candidate":
           this.onCandidate(message.candidate);
@@ -54,7 +55,7 @@ export class AdminChatComponent implements OnInit {
   private socketMessage(message) {
     console.log('new message from client to websocket: ', message);
     //connect room id to message. As roomId and admin's username is the same, roomid will identify admin.
-    message.name = this.settingsService.getRoomId();
+    message.name = userId;
     this.chatSocketService.messages.next(message);
   }
 
@@ -79,6 +80,7 @@ export class AdminChatComponent implements OnInit {
     await userRtc.createAnswer()
       .then(function (answer) {
         userRtc.setLocalDescription(answer);
+        userId = name;
       })
     this.socketMessage({
       type: "answer",
@@ -88,6 +90,10 @@ export class AdminChatComponent implements OnInit {
 
   //determines what happens when candidates are recieved.
   private onCandidate(candidate) {
-    userRtc.addIceCandidate(new RTCIceCandidate(candidate)); 
+    userRtc.addIceCandidate(new RTCIceCandidate(candidate));
+  }
+
+  connectionState() {
+    console.log(userRtc.iceConnectionState);
   }
 }

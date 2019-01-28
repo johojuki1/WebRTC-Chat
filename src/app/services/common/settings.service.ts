@@ -12,6 +12,7 @@ export class SettingsService {
   //stores variables that will be used by program.
   roomName: string;
   userName: string;
+  userId: string;
   roomId: string;
 
   constructor() { }
@@ -39,6 +40,10 @@ export class SettingsService {
     return this.roomId;
   }
 
+  public getUserId() {
+    return this.userId;
+  }
+
   //Variable Setters.
   public setRoomName(value: string) {
     this.roomName = value;
@@ -50,5 +55,9 @@ export class SettingsService {
 
   public setRoomId(value: string) {
     this.roomId = value;
+  }
+
+  public setUserId(value:string) {
+    this.userId = value;
   }
 }

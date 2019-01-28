@@ -52,6 +52,7 @@ wss.on('connection', function (connection) {
     //Tell user connection was successiful.
     sendTo(connection, { 
         type: "connection", 
+        id: connection.id,
         success: "true",
      });
     console.log("User connected with id " + users[connection.id].id);
@@ -86,7 +87,7 @@ wss.on('connection', function (connection) {
                sendTo(conn, { 
                   type: "offer", 
                   offer: data.offer, 
-                  name: connection.name 
+                  userId: data.userId,
                }); 
             } 
 				

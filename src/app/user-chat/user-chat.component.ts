@@ -58,6 +58,7 @@ export class UserChatComponent implements OnInit {
     this.socketMessage({
       type: 'offer',
       offer: adminRtc.localDescription,
+      userId: this.settingsService.getUserId(),
     });
   }
 
