@@ -1,9 +1,17 @@
 <!-- app.component.html -->
-<h1>
-  Angular 2 WebSockets Tutorial
-</h1>
+<h1>Available Rooms</h1>
 
-<button (click)="requestRooms()">Request Rooms</button>
-<button (click)="createRoom()">Create Room</button>
+<ul>
+  <li *ngFor="let room of rooms">
+
+    <a routerLink="/chat/{{room.adminId}}">{{ room.roomName }}</a>
+    <ul>
+      <li>Creator: {{ room.adminName }}</li>
+    </ul>
+  </li>
+</ul>
+
+<button mat-raised-button color="primary" (click)="openRoomCreatorDialog()">Create Room</button>
 <button (click)="connect()">Connect to Socket</button>
 <button (click)="disconnect()">Disconnect from Socket</button>
+<button (click)="requestRooms()">Request Rooms</button>

@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
-import { SocketService } from '../services/socket.service';
-import { SettingsService } from '../services/settings.service';
+import { SocketService } from '../common/socket.service';
+import { SettingsService } from '../common/settings.service';
 import { Observable, Subject } from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { MESSAGES_CONTAINER_ID } from '@angular/cdk/a11y';
 
 export interface Message {
   message: string;
 }
 
 @Injectable()
-export class ChatService {
+export class ChatSocketService {
   public messages: Subject<Message>;
 
   constructor(
@@ -19,6 +20,7 @@ export class ChatService {
   ) {
   }
 
+  //connect to websocket.
   public connect() {
     this.messages = <Subject<Message>>this.socketService
       .connect(this.settingsService.getChatWebsocketURL())

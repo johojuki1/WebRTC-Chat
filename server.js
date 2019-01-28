@@ -49,6 +49,11 @@ wss.on('connection', function (connection) {
     //Create a new user item.
     connection.id = assignId();
     users[connection.id] = connection;
+    //Tell user connection was successiful.
+    sendTo(connection, { 
+        type: "connection", 
+        success: "true",
+     });
     console.log("User connected with id " + users[connection.id].id);
 
     //when server gets a message from a connected user 
@@ -64,8 +69,57 @@ wss.on('connection', function (connection) {
             data = {};
         }
 
-        //switching type of the user message 
+        //switching type of the user message.
         switch (data.type) {
+            //Signalling functions.
+            case "offer": 
+            //for ex. UserA wants to call UserB 
+            console.log("Sending offer to: ", data.name); 
+				
+            //if UserB exists then send him offer details 
+            var conn = users[data.name];
+				
+            if(conn != null) { 
+               //setting that UserA connected with UserB 
+               connection.otherName = data.name; 
+					
+               sendTo(conn, { 
+                  type: "offer", 
+                  offer: data.offer, 
+                  name: connection.name 
+               }); 
+            } 
+				
+            break;  
+				
+         case "answer": 
+            console.log("Sending answer to: ", data.name); 
+            //for ex. UserB answers UserA 
+            var conn = users[data.name]; 
+				
+            if(conn != null) { 
+               connection.otherName = data.name; 
+               sendTo(conn, { 
+                  type: "answer", 
+                  answer: data.answer 
+               }); 
+            } 
+				
+            break;  
+				
+         case "candidate": 
+            console.log("Sending candidate to:",data.name); 
+            var conn = users[data.name];  
+				
+            if(conn != null) { 
+               sendTo(conn, { 
+                  type: "candidate", 
+                  candidate: data.candidate 
+               });
+            } 
+				
+            break;  
+
             //when a user tries to create a room.
             case "create-room":
                 //checks if connection already has an active room.
@@ -84,7 +138,10 @@ wss.on('connection', function (connection) {
             //when a user requests a list of available rooms
             case "request-rooms":
                 //returns all available rooms
-                sendTo(connection, rooms)
+                sendTo(connection, {
+                    type: "room-list",
+                    message: rooms
+                })
                 break;
             default:
                 sendTo(connection, {
