@@ -9,11 +9,14 @@ import { AppComponent } from './app.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { RoomSelectComponent } from './room-select/room-select.component';
 import { CreateRoomDialog } from './room-select/room-select.component';
+import { EnterRoomDialog } from './room-select/room-select.component';
 import { SocketService } from './services/common/socket.service';
 import { SettingsService } from './services/common/settings.service';
 import { ChatSocketService } from './services/chat/chatSocket.service'
 import { ChatRtcService} from './services/chat/chat-rtc.service';
 import { RtcService} from './services/common/rtc.service';
+import { AdminChatComponent } from './admin-chat/admin-chat.component';
+import { UserChatComponent } from './user-chat/user-chat.component';
 
 @NgModule({
   declarations: [
@@ -21,6 +24,9 @@ import { RtcService} from './services/common/rtc.service';
     SidebarComponent,
     RoomSelectComponent,
     CreateRoomDialog,
+    EnterRoomDialog,
+    AdminChatComponent,
+    UserChatComponent,
   ],
   imports: [
     BrowserModule,
@@ -35,6 +41,7 @@ import { RtcService} from './services/common/rtc.service';
   entryComponents: [
     RoomSelectComponent,
     CreateRoomDialog,
+    EnterRoomDialog,
   ],
 
   providers: [SocketService, SettingsService, ChatSocketService, ChatRtcService, RtcService],

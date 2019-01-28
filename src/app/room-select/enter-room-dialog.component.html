@@ -1,0 +1,10 @@
+<h1 mat-dialog-title>Enter A Room</h1>
+<div mat-dialog-content>
+    <p>Your Name: </p>
+    <input matInput #name>
+</div>
+<div style="padding-top: 30px"></div> 
+<div mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="onEnter(name.value)" cdkFocusInitial>Join</button>
+    <button mat-raised-button color="primary" (click)="onCancel()">Cancel</button>
+</div>

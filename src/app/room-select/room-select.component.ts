@@ -1,9 +1,9 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { ChatSocketService } from '../services/chat/chatSocket.service';
-import { ChatRtcService } from '../services/chat/chat-rtc.service';
 import { SettingsService } from '../services/common/settings.service'
 import { Room } from '../objects/room'
 import { MatDialog, MatDialogRef } from '@angular/material';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-room-select',
@@ -17,13 +17,25 @@ export class RoomSelectComponent implements OnInit {
 
   constructor(
     private chatSocketService: ChatSocketService,
-    private chatRtcService: ChatRtcService,
+    private settingsService: SettingsService,
     private dialog: MatDialog,
+    private router: Router,
   ) {
   }
 
   ngOnInit() {
     this.connect();
+  }
+
+  //QUICK CREATE ROOM FOR TESTING
+  quickCreateRoom() {
+    this.sendMsg(
+      {
+        type: 'create-room',
+        name: 'testRoom',
+        adminName: 'testUsername',
+      }
+    )
   }
 
   //requests a connection with websocket.
@@ -48,9 +60,10 @@ export class RoomSelectComponent implements OnInit {
     )
   }
 
-  //initiate Rtc Service
-  initiateRtc() {
-    this.chatRtcService.initiate();
+  //enters a selected room.
+  enterRoom(id:string, name:string) {
+    this.settingsService.setRoomId(id);
+    this.settingsService.setRoomName(name);
   }
 
   //sends a message to websocket
@@ -64,8 +77,10 @@ export class RoomSelectComponent implements OnInit {
     this.chatSocketService.messages.subscribe(msg => {
       console.log("Response from websocket: " + msg);
       var message = JSON.parse(JSON.stringify(msg.message))
+
       //determine what to do with the replying message.
       switch (message.type) {
+
         //A new list of available rooms is sent from server.
         case "room-list":
           var roomList: Array<Room>;
@@ -77,12 +92,22 @@ export class RoomSelectComponent implements OnInit {
           });
           this.refreshRoomList(roomList);
           break;
+
         //server replies connection is successiful
         case "connection":
-          if(message.success) {
+          if (message.success) {
             this.requestRooms();
           }
           break;
+
+        //server replies if room creation is successiful.
+        case "create-room":
+          if (message.success) {
+            //Navigate to administrator chat room.
+            this.router.navigate(['chat/admin']);
+          }
+          break;
+
         default:
           console.log("Message not recognised.");
       }
@@ -101,6 +126,17 @@ export class RoomSelectComponent implements OnInit {
       width: '250px',
     });
   }
+
+  //Functions for the room entry dialog.
+  openRoomEntryDialog(id: string, name: string): void {
+    //store room information in settings.
+    this.settingsService.setRoomId(id);
+    this.settingsService.setUserName(name);
+    //open room entry dialog.
+    this.dialog.open(EnterRoomDialog, {
+      width: '250px',
+    });
+  }
 }
 
 @Component({
@@ -113,7 +149,7 @@ export class CreateRoomDialog {
   constructor(
     public dialogRef: MatDialogRef<CreateRoomDialog>,
     private settingsService: SettingsService,
-    private chatSocketService: ChatSocketService, ) { }
+    private chatSocketService: ChatSocketService,) { }
 
   //response if the user decides to press create room button.
   onCreate(room: string, name: string): void {
@@ -127,6 +163,7 @@ export class CreateRoomDialog {
         adminName: name,
       }
     )
+    this.dialogRef.close();
   }
 
   //sends a message to websocket
@@ -136,6 +173,32 @@ export class CreateRoomDialog {
   }
 
   onCancel(): void {
+    this.dialogRef.close();
+  }
+}
+
+@Component({
+  selector: 'enter-room-dialog',
+  templateUrl: 'enter-room-dialog.component.html',
+})
+export class EnterRoomDialog {
+
+  constructor(
+    public dialogRef: MatDialogRef<EnterRoomDialog>,
+    private settingsService: SettingsService,
+    private router: Router,
+  ) {}
+
+  //response if the user decides to press create room button.
+  onEnter(name: string): void {
+    this.settingsService.setUserName(name);
+    this.dialogRef.close();
+    this.router.navigate(['chat/user']);
+  }
+
+  onCancel(): void {
+    this.settingsService.setRoomId('');
+    this.settingsService.setUserName('');
     this.dialogRef.close();
   }
 }

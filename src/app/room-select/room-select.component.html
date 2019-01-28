@@ -4,7 +4,7 @@
 <ul>
   <li *ngFor="let room of rooms">
 
-    <a routerLink="/chat/{{room.adminId}}">{{ room.roomName }}</a>
+    <a routerLink="/chat" (click)="openRoomEntryDialog(room.adminId, room.roomName)">{{ room.roomName }}</a>
     <ul>
       <li>Creator: {{ room.adminName }}</li>
     </ul>
@@ -15,3 +15,4 @@
 <button (click)="connect()">Connect to Socket</button>
 <button (click)="disconnect()">Disconnect from Socket</button>
 <button (click)="requestRooms()">Request Rooms</button>
+<button (click)="quickCreateRoom()">Quick Create Room</button>

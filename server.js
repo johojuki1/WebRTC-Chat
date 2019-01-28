@@ -133,6 +133,12 @@ wss.on('connection', function (connection) {
                     //create a room under the specifications within the message.
                     rooms[connection.id] = new Room(connection.id, data.name, data.adminName);
                     console.log("New room created with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
+                    //if room is successifully created, inform client.
+                    sendTo(connection, {
+                        type: "create-room",
+                        success: true,
+                        message: "Room successifully created."
+                    });
                 }
                 break;
             //when a user requests a list of available rooms
