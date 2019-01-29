@@ -6,9 +6,7 @@ import { RtcService } from '../common/rtc.service';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 
-var userRtc;
-var userId: string;
-var dataChannel: RTCDataChannel;
+//Stores values that is retrived by subscribed functions.
 var messagesOut: Subject<string> = new Subject<string>();
 
 @Injectable({
@@ -16,6 +14,9 @@ var messagesOut: Subject<string> = new Subject<string>();
 })
 export class RtcChatAdminService {
 
+  private dataChannel: RTCDataChannel;
+  private userRtc: webkitRTCPeerConnection;
+  private userId: string;
   eventCallback$ = messagesOut.asObservable(); // Stream
 
   constructor(
@@ -58,34 +59,35 @@ export class RtcChatAdminService {
 
   //determines what happens when a user wants to call the administrator.
   async onOffer(offer, name) {
-    userRtc.setRemoteDescription(new RTCSessionDescription(offer));
-    await userRtc.createAnswer()
+    this.userRtc.setRemoteDescription(new RTCSessionDescription(offer));
+    this.userId = name;
+    this.userRtc.setLocalDescription(
+      await this.userRtc.createAnswer()
       .then(function (answer) {
-        userRtc.setLocalDescription(answer);
-        userId = name;
-      })
+        return answer;
+      }))
     this.socketMessage({
       type: "answer",
-      answer: userRtc.localDescription,
+      answer: this.userRtc.localDescription,
     });
   }
 
   //determines what happens when candidates are recieved.
   private onCandidate(candidate) {
-    userRtc.addIceCandidate(new RTCIceCandidate(candidate));
+    this.userRtc.addIceCandidate(new RTCIceCandidate(candidate));
   }
 
   //send message through websocket.
   private socketMessage(message) {
-    message.name = userId;
+    message.name = this.userId;
     this.chatSocketService.messages.next(message);
   }
 
   //Sets up the settings for the WebRTC connection.
   initiateRTC() {
-    userRtc = this.rtcService.setupConnection();
+    this.userRtc = this.rtcService.setupConnection();
     //setup ice handling.
-    userRtc.onicecandidate = event => {
+    this.userRtc.onicecandidate = event => {
       if (event.candidate) {
         this.socketMessage({
           type: "candidate",
@@ -97,18 +99,18 @@ export class RtcChatAdminService {
   }
 
   connectionState() {
-    console.log(userRtc.iceConnectionState);
-    console.log(userRtc.iceGatheringState);
-    console.log(userRtc.signalingState);
-    console.log(dataChannel.readyState);
+    console.log(this.userRtc.iceConnectionState);
+    console.log(this.userRtc.iceGatheringState);
+    console.log(this.userRtc.signalingState);
+    console.log(this.dataChannel.readyState);
   }
 
   //Setup Data Channel.
   setupDataChannel() {
 
-    dataChannel = userRtc.createDataChannel("myDataChannel", this.settingsService.getDataChannelOptions());
+    this.dataChannel = this.userRtc.createDataChannel("myDataChannel", this.settingsService.getDataChannelOptions());
 
-    userRtc.ondatachannel = function (event) {
+    this.userRtc.ondatachannel = function (event) {
       event.channel.onopen = function () {
         event.channel.onmessage = event => {
           messagesOut.next(event.data);
@@ -123,6 +125,6 @@ export class RtcChatAdminService {
   sendMessage() {
     console.log("sending message");
     var val = 'test message from admin';
-    dataChannel.send(val);
+    this.dataChannel.send(val);
   };
 }
