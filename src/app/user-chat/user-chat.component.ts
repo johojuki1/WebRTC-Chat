@@ -5,7 +5,8 @@ import { SettingsService } from '../services/common/settings.service'
 import { Router } from '@angular/router';
 
 //connection to chat admin
-var adminRtc
+var adminRtc;
+var dataChannel;
 
 @Component({
   selector: 'app-user-chat',
@@ -32,6 +33,7 @@ export class UserChatComponent implements OnInit {
       this.router.navigate(['chat']);
     };
     this.initiateRTC();
+    this.openDataChannel();
     this.sendOffer();
   }
 
@@ -40,6 +42,7 @@ export class UserChatComponent implements OnInit {
     adminRtc = this.rtcService.setupConnection();
     //setup ice handling.
     adminRtc.onicecandidate = event => {
+      console.log("candidate triggered");
       if (event.candidate) {
         this.socketMessage({
           type: "candidate",
@@ -51,7 +54,9 @@ export class UserChatComponent implements OnInit {
 
   //Make an offer to admin.
   async sendOffer() {
-    await adminRtc.createOffer()
+    await adminRtc.createOffer({
+      offerToReceiveAudio: true
+    })
       .then(function (offer) {
         adminRtc.setLocalDescription(offer);
       })
@@ -65,11 +70,12 @@ export class UserChatComponent implements OnInit {
   //when an answer is recieved.
   private onAnswer(answer) {
     adminRtc.setRemoteDescription(new RTCSessionDescription(answer))
+    console.log(adminRtc.getConfiguration())
   }
 
   //determines what happens when candidates are recieved.
   private onCandidate(candidate) {
-    adminRtc.addIceCandidate(new RTCIceCandidate(candidate)); 
+    adminRtc.addIceCandidate(new RTCIceCandidate(candidate));
   }
 
   //sends a message to websocket
@@ -101,5 +107,35 @@ export class UserChatComponent implements OnInit {
 
   connectionState() {
     console.log(adminRtc.iceConnectionState);
+    console.log(adminRtc.iceGatheringState);
+    console.log(adminRtc.signalingState);
+    console.log(dataChannel.readyState);
   }
+
+  //creating data channel 
+  openDataChannel() {
+
+    var dataChannelOptions = {
+      ordered: false, // do not guarantee order
+      maxPacketLifeTime: 3000, // in milliseconds
+      reliable:true
+    };
+
+    dataChannel = adminRtc.createDataChannel("myDataChannel", dataChannelOptions);
+
+    dataChannel.onerror = function (error) {
+      console.log("Error:", error);
+    };
+
+    dataChannel.onmessage = function (event) {
+      console.log("Got message:", event.data);
+    };
+  }
+
+  //when a user clicks the send message button 
+  sendMessage() {
+    console.log("sending message");
+    var val = 'test message from admin';
+    dataChannel.send(val);
+  };
 }

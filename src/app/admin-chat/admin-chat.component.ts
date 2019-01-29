@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 //connection to users.
 var userRtc: webkitRTCPeerConnection;
 var userId: string;
+var dataChannel: RTCDataChannel;
 
 @Component({
   selector: 'app-admin-chat',
@@ -65,12 +66,14 @@ export class AdminChatComponent implements OnInit {
     //setup ice handling.
     userRtc.onicecandidate = event => {
       if (event.candidate) {
+        console.log("candidate triggered");
         this.socketMessage({
           type: "candidate",
           candidate: event.candidate
         });
       }
     }
+    this.setupDataChannel();
   }
 
   //determines what happens when a user wants to call the administrator.
@@ -95,5 +98,37 @@ export class AdminChatComponent implements OnInit {
 
   connectionState() {
     console.log(userRtc.iceConnectionState);
+    console.log(userRtc.iceGatheringState);
+    console.log(userRtc.signalingState);
+    console.log(dataChannel.readyState);
   }
+
+  //setup data channel 
+  setupDataChannel() {
+      
+    var dataChannelOptions = {
+      ordered: false, // do not guarantee order
+      maxPacketLifeTime: 3000, // in milliseconds
+      reliable:true
+    };
+
+    dataChannel = userRtc.createDataChannel("myDataChannel", dataChannelOptions);
+
+    dataChannel.onerror = function (error) {
+      console.log("Error:", error);
+    };
+
+    dataChannel.onmessage = function (event) {
+      console.log("Got message:", event.data);
+    };
+  }
+
+  //Instructions
+
+  //when a user clicks the send message button 
+  sendMessage() {
+    console.log("sending message");
+    var val = 'test message from admin';
+    dataChannel.send(val);
+  };
 }

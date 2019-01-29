@@ -1,20 +1,23 @@
 import { Injectable } from '@angular/core';
+import { SettingsService } from '../common/settings.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RtcService {
 
-  constructor() { }
+  constructor(
+    private settingsService: SettingsService,
+  ) { }
 
   public setupConnection(): webkitRTCPeerConnection {
-    var configuration = { 
-      "iceServers": [{ urls: "stun:stun.1.google.com:19302" }] 
-   }; 
- 
-   var myConnection = new webkitRTCPeerConnection(configuration); 
-   console.log("RTCPeerConnection object was created"); 
-   console.log(myConnection); 
-   return myConnection;
+    var configuration = {
+      "iceServers": [{ urls: this.settingsService.getIceServerURL() }],  
+      "optional": [{ RtpDataChannels: true }]
+    };
+
+    var myConnection = new webkitRTCPeerConnection(configuration);
+    console.log("RTCPeerConnection object was created");
+    return myConnection;
   };
 }

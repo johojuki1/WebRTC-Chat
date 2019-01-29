@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 //stores all settings of the program.
-const WEBSOCKET_SERVER_URL = 'ws://localhost:9090';
+const WEBSOCKET_SERVER_URL = 'ws://10.0.0.4:9090';
 const ICE_SERVER_URL = 'stun:stun.1.google.com:19302'
 
 @Injectable({
