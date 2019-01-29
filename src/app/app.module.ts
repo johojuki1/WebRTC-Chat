@@ -13,10 +13,11 @@ import { EnterRoomDialog } from './room-select/room-select.component';
 import { SocketService } from './services/common/socket.service';
 import { SettingsService } from './services/common/settings.service';
 import { ChatSocketService } from './services/chat/chatSocket.service'
-import { ChatRtcService} from './services/chat/chat-rtc.service';
 import { RtcService} from './services/common/rtc.service';
 import { AdminChatComponent } from './admin-chat/admin-chat.component';
 import { UserChatComponent } from './user-chat/user-chat.component';
+import { RtcChatAdminService } from './services/chat/rtc-chat-admin.service';
+import { RtcChatUserService } from './services/chat/rtc-chat-user.service';
 
 @NgModule({
   declarations: [
@@ -44,7 +45,7 @@ import { UserChatComponent } from './user-chat/user-chat.component';
     EnterRoomDialog,
   ],
 
-  providers: [SocketService, SettingsService, ChatSocketService, ChatRtcService, RtcService],
+  providers: [SocketService, SettingsService, ChatSocketService, RtcService, RtcChatAdminService, RtcChatUserService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

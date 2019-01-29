@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ChatRtcService } from './chat-rtc.service';
+import { RtcChatAdminService } from './rtc-chat-admin.service';
 
-describe('ChatRtcService', () => {
+describe('RtcChatAdminService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: ChatRtcService = TestBed.get(ChatRtcService);
+    const service: RtcChatAdminService = TestBed.get(RtcChatAdminService);
     expect(service).toBeTruthy();
   });
 });

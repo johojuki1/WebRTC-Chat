@@ -4,6 +4,12 @@ import { Injectable } from '@angular/core';
 const WEBSOCKET_SERVER_URL = 'ws://10.0.0.4:9090';
 const ICE_SERVER_URL = 'stun:stun.1.google.com:19302'
 
+const DATA_CHANNEL_OPTIONS = {
+  ordered: false, // do not guarantee order
+  maxPacketLifeTime: 3000, // in milliseconds
+  reliable:true
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,6 +31,10 @@ export class SettingsService {
   //get url of ice servers.
   public getIceServerURL() {
     return ICE_SERVER_URL;
+  }
+
+  public getDataChannelOptions(){
+    return DATA_CHANNEL_OPTIONS;
   }
 
   //Variable getters.
