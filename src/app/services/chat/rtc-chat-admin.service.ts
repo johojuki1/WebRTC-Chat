@@ -6,28 +6,25 @@ import { RtcService } from '../common/rtc.service';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 
-
-var userRtc: webkitRTCPeerConnection;
+var userRtc;
 var userId: string;
 var dataChannel: RTCDataChannel;
-
-export interface Message {
-  message: string;
-}
+var messagesOut: Subject<string> = new Subject<string>();
 
 @Injectable({
   providedIn: 'root'
 })
 export class RtcChatAdminService {
 
-  public messages: Subject<Message>;
+  eventCallback$ = messagesOut.asObservable(); // Stream
 
   constructor(
     private chatSocketService: ChatSocketService,
     private rtcService: RtcService,
     private router: Router,
     private settingsService: SettingsService,
-  ) { }
+  ) {
+  }
 
   //initiates the settings on the service.
   public initiateService() {
@@ -44,7 +41,6 @@ export class RtcChatAdminService {
   //subscribes to the messages value in chatService
   subscribeToSocket() {
     this.chatSocketService.messages.subscribe(msg => {
-      console.log("Response from websocket: " + msg);
       var message = JSON.parse(JSON.stringify(msg.message))
       //determine what to do with the replying message.
       switch (message.type) {
@@ -81,8 +77,6 @@ export class RtcChatAdminService {
 
   //send message through websocket.
   private socketMessage(message) {
-    console.log('new message from client to websocket: ', message);
-    //connect room id to message. As roomId and admin's username is the same, roomid will identify admin.
     message.name = userId;
     this.chatSocketService.messages.next(message);
   }
@@ -93,7 +87,6 @@ export class RtcChatAdminService {
     //setup ice handling.
     userRtc.onicecandidate = event => {
       if (event.candidate) {
-        console.log("candidate triggered");
         this.socketMessage({
           type: "candidate",
           candidate: event.candidate
@@ -117,11 +110,11 @@ export class RtcChatAdminService {
 
     userRtc.ondatachannel = function (event) {
       event.channel.onopen = function () {
-        event.channel.onmessage = function (event) {
-          console.log("Got message:", event.data);
-        };
-      };
-    };
+        event.channel.onmessage = event => {
+          messagesOut.next(event.data);
+        }
+      }
+    }
   }
 
   //Instructions

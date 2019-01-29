@@ -1,19 +1,22 @@
 import { Injectable } from '@angular/core';
-import { Component, OnInit } from '@angular/core';
 import { ChatSocketService } from './chatSocket.service';
 import { RtcService } from '../common/rtc.service';
 import { SettingsService } from '../common/settings.service'
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
 
 
 //connection to chat admin
 var adminRtc;
 var dataChannel;
+var messagesOut: Subject<string> = new Subject<string>();
 
 @Injectable({
   providedIn: 'root'
 })
 export class RtcChatUserService {
+
+  eventCallback$ = messagesOut.asObservable(); // Stream
 
   constructor(
     private chatSocketService: ChatSocketService,
@@ -21,9 +24,9 @@ export class RtcChatUserService {
     private rtcService: RtcService,
     private settingsService: SettingsService,
   ) {
-
   }
 
+  //functions to run to initiate service.
   initiateService() {
     //subscribe to chat socket. 
     try {
@@ -41,7 +44,6 @@ export class RtcChatUserService {
     adminRtc = this.rtcService.setupConnection();
     //setup ice handling.
     adminRtc.onicecandidate = event => {
-      console.log("candidate triggered");
       if (event.candidate) {
         this.socketMessage({
           type: "candidate",
@@ -79,7 +81,6 @@ export class RtcChatUserService {
 
   //sends a message to websocket
   private socketMessage(message) {
-    console.log('new message from client to websocket: ', message);
     //connect room id to message. As roomId and admin's username is the same, roomid will identify admin.
     message.name = this.settingsService.getRoomId();
     this.chatSocketService.messages.next(message);
@@ -88,7 +89,6 @@ export class RtcChatUserService {
   //subscribes to the messages value in chatService
   subscribe() {
     this.chatSocketService.messages.subscribe(msg => {
-      console.log("Response from websocket: " + msg);
       var message = JSON.parse(JSON.stringify(msg.message))
       //determine what to do with the replying message.
       switch (message.type) {
@@ -118,8 +118,8 @@ export class RtcChatUserService {
 
     adminRtc.ondatachannel = function (event) {
       event.channel.onopen = function () {
-        event.channel.onmessage = function (event) {
-          console.log("Got message:", event.data);
+        event.channel.onmessage = event => {
+          messagesOut.next(event.data);
         };
       };
     };

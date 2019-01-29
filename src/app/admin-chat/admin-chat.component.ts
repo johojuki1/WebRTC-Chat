@@ -14,9 +14,16 @@ export class AdminChatComponent implements OnInit {
 
   ngOnInit() {
     this.rtcChatAdminService.initiateService();
+    this.subscribeRTCMessage();
   }
 
-  public connectionState() {
+  private subscribeRTCMessage() {
+    this.rtcChatAdminService.eventCallback$.subscribe(data => {
+      console.log("Message Recieved from User: " + data);
+    })
+  }
+
+  public connectionState() { 
     this.rtcChatAdminService.connectionState();
   }
 
