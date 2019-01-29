@@ -1,22 +1,22 @@
 import { Injectable } from '@angular/core';
-import { Component, OnInit } from '@angular/core';
 import { ChatSocketService } from './chatSocket.service';
 import { SettingsService } from '../common/settings.service'
 import { RtcService } from '../common/rtc.service';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
+import { User } from '../../objects/user'
 
 //Stores values that is retrived by subscribed functions.
 var messagesOut: Subject<string> = new Subject<string>();
+
+//Stores users usd by software. 
+var users: Array<User> = [];
 
 @Injectable({
   providedIn: 'root'
 })
 export class RtcChatAdminService {
 
-  private dataChannel: RTCDataChannel;
-  private userRtc: webkitRTCPeerConnection;
-  private userId: string;
   eventCallback$ = messagesOut.asObservable(); // Stream
 
   constructor(
@@ -36,7 +36,6 @@ export class RtcChatAdminService {
       //if socket does't exist, go back to choose chat screen.
       this.router.navigate(['chat']);
     }
-    this.initiateRTC();
   }
 
   //subscribes to the messages value in chatService
@@ -49,7 +48,7 @@ export class RtcChatAdminService {
           this.onOffer(message.offer, message.userId);
           break;
         case "candidate":
-          this.onCandidate(message.candidate);
+          this.onCandidate(message.candidate, message.roomId);
           break;
         default:
           console.log("Message not recognised.");
@@ -58,73 +57,118 @@ export class RtcChatAdminService {
   }
 
   //determines what happens when a user wants to call the administrator.
-  async onOffer(offer, name) {
-    this.userRtc.setRemoteDescription(new RTCSessionDescription(offer));
-    this.userId = name;
-    this.userRtc.setLocalDescription(
-      await this.userRtc.createAnswer()
-      .then(function (answer) {
-        return answer;
-      }))
+  async onOffer(offer, socketId) {
+    //setup new user.
+    let newUser: User;
+    newUser = this.initiateUser(socketId);
+    newUser = this.setupDataChannel(newUser);
+    newUser.rtc.setRemoteDescription(new RTCSessionDescription(offer));
+    newUser.rtc.setLocalDescription(
+      await newUser.rtc.createAnswer()
+        .then(function (answer) {
+          return answer;
+        }))
+    //add to list of users
+    users[newUser.roomId] = newUser;
+    console.log("Admin - Added user with id: " + newUser.roomId);
+    //send answer.
     this.socketMessage({
       type: "answer",
-      answer: this.userRtc.localDescription,
-    });
+      answer: newUser.rtc.localDescription,
+      roomId: newUser.roomId,
+    }, socketId);
+  }
+
+  //Generates a new id for the user. Used for RTC communication.
+  private assignId(): string {
+    var newId;
+    do {
+      newId = Math.floor(Math.random() * 90000) + 10000;
+    } while (users[newId])
+    return <string>newId;
   }
 
   //determines what happens when candidates are recieved.
-  private onCandidate(candidate) {
-    this.userRtc.addIceCandidate(new RTCIceCandidate(candidate));
+  private onCandidate(candidate, roomId) {
+    if (users[roomId]) {
+      users[roomId].rtc.addIceCandidate(new RTCIceCandidate(candidate));
+    }
   }
 
   //send message through websocket.
-  private socketMessage(message) {
-    message.name = this.userId;
+  private socketMessage(message, socketId) {
+    message.name = socketId;
     this.chatSocketService.messages.next(message);
   }
 
-  //Sets up the settings for the WebRTC connection.
-  initiateRTC() {
-    this.userRtc = this.rtcService.setupConnection();
-    //setup ice handling.
-    this.userRtc.onicecandidate = event => {
+  //Initiates a user object.
+  initiateUser(socketId: string): User {
+    var newUser = new User();
+    //setup user object.
+    newUser.rtc = this.rtcService.setupConnection();
+    newUser.socketId = socketId;
+    newUser.roomId = this.assignId();
+    //setup ice handling
+    newUser.rtc.onicecandidate = event => {
       if (event.candidate) {
         this.socketMessage({
           type: "candidate",
           candidate: event.candidate
-        });
+        }, socketId);
       }
     }
-    this.setupDataChannel();
+    //detects if user has disconnected and deletes user.
+    newUser.rtc.oniceconnectionstatechange = event => {
+      if (newUser.rtc.iceConnectionState == 'disconnected') {
+        this.removeUser(newUser.roomId)
+      }
+    }
+    return newUser;
   }
 
-  connectionState() {
-    console.log(this.userRtc.iceConnectionState);
-    console.log(this.userRtc.iceGatheringState);
-    console.log(this.userRtc.signalingState);
-    console.log(this.dataChannel.readyState);
+  private removeUser(roomId) {
+    //close all socket connections.
+    users[roomId].rtc.close;
+    users[roomId].datachannel.close;
+    //delete user.
+    users.splice(users.indexOf(users[roomId]), 1);
+    console.log("Admin - User removed with id: " + roomId);
   }
 
   //Setup Data Channel.
-  setupDataChannel() {
+  setupDataChannel(user: User): User {
+    //create datachannel
+    user.datachannel = user.rtc.createDataChannel(user.roomId, this.settingsService.getDataChannelOptions());
 
-    this.dataChannel = this.userRtc.createDataChannel("myDataChannel", this.settingsService.getDataChannelOptions());
-
-    this.userRtc.ondatachannel = function (event) {
+    //setup channel
+    user.rtc.ondatachannel = function (event) {
       event.channel.onopen = function () {
         event.channel.onmessage = event => {
           messagesOut.next(event.data);
         }
       }
     }
+    return user;
   }
 
   //Instructions
 
   //when a user clicks the send message button 
-  sendMessage() {
-    console.log("sending message");
-    var val = 'test message from admin';
-    this.dataChannel.send(val);
-  };
+  broadcast() {
+    users.forEach(function (value) {
+      console.log("Sending message to: " + value.roomId);
+      var val = 'Test message from admin: ' + value.roomId;
+      value.datachannel.send(val);
+    })
+  }
+
+  connectionState() {
+    users.forEach(function (value) {
+      console.log(value.rtc.iceConnectionState);
+      console.log(value.rtc.iceGatheringState);
+      console.log(value.rtc.signalingState);
+      console.log(value.datachannel.readyState);
+      console.log(" ");
+    })
+  }
 }

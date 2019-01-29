@@ -6,9 +6,6 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 
 
-//connection to chat admin
-var adminRtc;
-var dataChannel;
 var messagesOut: Subject<string> = new Subject<string>();
 
 @Injectable({
@@ -17,6 +14,9 @@ var messagesOut: Subject<string> = new Subject<string>();
 export class RtcChatUserService {
 
   eventCallback$ = messagesOut.asObservable(); // Stream
+  private roomId: string;
+  private adminRtc: webkitRTCPeerConnection;
+  private dataChannel: RTCDataChannel;
 
   constructor(
     private chatSocketService: ChatSocketService,
@@ -41,13 +41,14 @@ export class RtcChatUserService {
 
   //Sets up the settings for the WebRTC connection.
   initiateRTC() {
-    adminRtc = this.rtcService.setupConnection();
+    this.adminRtc = this.rtcService.setupConnection();
     //setup ice handling.
-    adminRtc.onicecandidate = event => {
+    this.adminRtc.onicecandidate = event => {
       if (event.candidate) {
         this.socketMessage({
           type: "candidate",
-          candidate: event.candidate
+          candidate: event.candidate,
+          roomId: this.roomId
         });
       }
     }
@@ -55,28 +56,30 @@ export class RtcChatUserService {
 
   //Make an offer to admin.
   async sendOffer() {
-    await adminRtc.createOffer({
-      offerToReceiveAudio: true
-    })
-      .then(function (offer) {
-        adminRtc.setLocalDescription(offer);
+    this.adminRtc.setLocalDescription(
+      await this.adminRtc.createOffer({
+        offerToReceiveAudio: true
       })
+        .then(function (offer) {
+          return offer;
+        })
+    )
     this.socketMessage({
       type: 'offer',
-      offer: adminRtc.localDescription,
+      offer: this.adminRtc.localDescription,
       userId: this.settingsService.getUserId(),
     });
   }
 
-  //when an answer is recieved.
-  private onAnswer(answer) {
-    adminRtc.setRemoteDescription(new RTCSessionDescription(answer))
-    console.log(adminRtc.getConfiguration())
+  //when an answer is recieved. Also assigns an id from administrator.
+  private onAnswer(answer, assignedId) {
+    this.adminRtc.setRemoteDescription(new RTCSessionDescription(answer))
+    this.roomId = assignedId;
   }
 
   //determines what happens when candidates are recieved.
   private onCandidate(candidate) {
-    adminRtc.addIceCandidate(new RTCIceCandidate(candidate));
+    this.adminRtc.addIceCandidate(new RTCIceCandidate(candidate));
   }
 
   //sends a message to websocket
@@ -93,7 +96,7 @@ export class RtcChatUserService {
       //determine what to do with the replying message.
       switch (message.type) {
         case "answer":
-          this.onAnswer(message.answer);
+          this.onAnswer(message.answer, message.roomId);
           break;
         case "candidate":
           this.onCandidate(message.candidate);
@@ -104,31 +107,35 @@ export class RtcChatUserService {
     });
   }
 
-  connectionState() {
-    console.log(adminRtc.iceConnectionState);
-    console.log(adminRtc.iceGatheringState);
-    console.log(adminRtc.signalingState);
-    console.log(dataChannel.readyState);
-  }
-
   //creating data channel 
   openDataChannel() {
 
-    dataChannel = adminRtc.createDataChannel("myDataChannel", this.settingsService.getDataChannelOptions());
+    this.dataChannel = this.adminRtc.createDataChannel("myDataChannel", this.settingsService.getDataChannelOptions());
 
-    adminRtc.ondatachannel = function (event) {
-      event.channel.onopen = function () {
-        event.channel.onmessage = event => {
-          messagesOut.next(event.data);
-        };
+    this.adminRtc.ondatachannel = event => {
+      //once the channel is open disconnect form socket.
+      event.channel.onopen = event => {
+        this.chatSocketService.disconnect();
+      };
+      event.channel.onmessage = event => {
+        messagesOut.next(event.data);
       };
     };
+  }
+
+  //TEMP
+
+  connectionState() {
+    console.log(this.adminRtc.iceConnectionState);
+    console.log(this.adminRtc.iceGatheringState);
+    console.log(this.adminRtc.signalingState);
+    console.log(this.dataChannel.readyState);
   }
 
   //when a user clicks the send message button 
   sendMessage() {
     console.log("sending message");
     var val = 'test message from user.';
-    dataChannel.send(val);
+    this.dataChannel.send(val);
   };
 }

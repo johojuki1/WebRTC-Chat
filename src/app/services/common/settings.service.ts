@@ -16,10 +16,14 @@ const DATA_CHANNEL_OPTIONS = {
 export class SettingsService {
 
   //stores variables that will be used by program.
-  roomName: string;
-  userName: string;
-  userId: string;
-  roomId: string;
+  //Name of room.
+  private roomName: string;
+  //User's current name.
+  private userName: string;
+  //Socket ID of the user.
+  private userId: string;
+  //ID of room, same as admin Id.
+  private roomId: string;
 
   constructor() { }
 
