@@ -1,18 +1,25 @@
 <!-- app.component.html -->
-<h1>Available Rooms</h1>
+<h1 style="display: inline-block">
+  <div style="display:inline-block">Available Rooms</div>
+  <button mat-raised-button color="primary" (click)="requestRooms()" style="display: inline-block; vertical-align: middle; margin-left: 30px">
+    <i class="material-icons">refresh</i>
+  </button>
+</h1>
 
 <ul>
-  <li *ngFor="let room of rooms">
-
-    <a routerLink="/chat" (click)="openRoomEntryDialog(room.adminId, room.roomName)">{{ room.roomName }}</a>
-    <ul>
-      <li>Creator: {{ room.adminName }}</li>
-    </ul>
+  <li *ngFor="let room of rooms" style="display:block;">
+    <div style="display: inline-block; vertical-align:top; top:50%; position: relative; transform: translateY(45%); ">
+      <button mat-raised-button color="primary" (click)="openRoomEntryDialog(room.adminId, room.roomName)" style="display: inline-block; vertical-align:middle;">Join</button>
+    </div>
+    <div style="display:inline-block; margin-left: 35px;">
+      <a routerLink="/chat" (click)="openRoomEntryDialog(room.adminId, room.roomName)">{{ room.roomName }}</a>
+      <ul>
+        <li>Creator: {{ room.adminName }}</li>
+      </ul>
+    </div>
   </li>
 </ul>
 
+<div style="padding:8px"></div>
 <button mat-raised-button color="primary" (click)="openRoomCreatorDialog()">Create Room</button>
-<button (click)="connect()">Connect to Socket</button>
-<button (click)="disconnect()">Disconnect from Socket</button>
-<button (click)="requestRooms()">Request Rooms</button>
 <button (click)="quickCreateRoom()">Quick Create Room</button>

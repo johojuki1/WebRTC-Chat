@@ -45,12 +45,6 @@ export class RoomSelectComponent implements OnInit {
     this.subscribe();
   }
 
-  //disconnects with connected websocket.
-  disconnect() {
-    console.log('Disconnecting from websocket');
-    this.chatSocketService.disconnect();
-  }
-
   //request availabel rooms from websocket.
   requestRooms() {
     this.sendMsg(
