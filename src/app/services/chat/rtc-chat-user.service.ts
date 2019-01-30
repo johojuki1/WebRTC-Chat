@@ -67,7 +67,10 @@ export class RtcChatUserService {
     this.socketMessage({
       type: 'offer',
       offer: this.adminRtc.localDescription,
-      userId: this.settingsService.getUserId(),
+      userId: {
+        id: this.settingsService.getUserId(),
+        name: this.settingsService.getUserName(),
+      }
     });
   }
 
@@ -133,9 +136,8 @@ export class RtcChatUserService {
   }
 
   //when a user clicks the send message button 
-  sendMessage() {
-    console.log("sending message");
-    var val = 'test message from user.';
-    this.dataChannel.send(val);
+  sendRtcMessage(message) {
+    console.log("sending message: " + message);
+    this.dataChannel.send(JSON.stringify(message));
   };
 }

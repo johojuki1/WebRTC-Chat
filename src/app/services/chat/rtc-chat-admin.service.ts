@@ -45,7 +45,7 @@ export class RtcChatAdminService {
       //determine what to do with the replying message.
       switch (message.type) {
         case "offer":
-          this.onOffer(message.offer, message.userId);
+          this.onOffer(message.offer, message.userId.id, message.userId.name);
           break;
         case "candidate":
           this.onCandidate(message.candidate, message.roomId);
@@ -57,10 +57,11 @@ export class RtcChatAdminService {
   }
 
   //determines what happens when a user wants to call the administrator.
-  async onOffer(offer, socketId) {
+  async onOffer(offer, socketId: string, name: string) {
     //setup new user.
     let newUser: User;
-    newUser = this.initiateUser(socketId);
+    //setup username
+    newUser = this.initiateUser(socketId, name);
     newUser = this.setupDataChannel(newUser);
     newUser.rtc.setRemoteDescription(new RTCSessionDescription(offer));
     newUser.rtc.setLocalDescription(
@@ -102,9 +103,15 @@ export class RtcChatAdminService {
   }
 
   //Initiates a user object.
-  initiateUser(socketId: string): User {
+  initiateUser(socketId: string, name: string): User {
     var newUser = new User();
     //setup user object.
+    //setup name. If name is empty, record'Anonymous' instead
+    if (name.length == 0) {
+      newUser.username = 'Anonymous';
+    } else {
+      newUser.username = name;
+    }
     newUser.rtc = this.rtcService.setupConnection();
     newUser.socketId = socketId;
     newUser.roomId = this.assignId();
@@ -141,24 +148,43 @@ export class RtcChatAdminService {
     user.datachannel = user.rtc.createDataChannel(user.roomId, this.settingsService.getDataChannelOptions());
 
     //setup channel
-    user.rtc.ondatachannel = function (event) {
+    user.rtc.ondatachannel = event => {
       event.channel.onopen = function () {
-        event.channel.onmessage = event => {
-          messagesOut.next(event.data);
-        }
+      }
+      event.channel.onmessage = event => {
+        this.manageRtcMessage(event.data, user.roomId)
       }
     }
     return user;
   }
 
+  //manage contents of WebRTC message.
+  private manageRtcMessage(data, roomId) {
+    var data = JSON.parse(data)
+    switch (data.type) {
+      //user has requested broadcast of message throughout group.
+      case "chat-request":
+        this.onMessageRequest(data.message, roomId);
+        break;
+      default:
+        console.log("RTC Message not recognised.");
+    }
+  }
+
+  private onMessageRequest(message, roomId) {
+    if (users[roomId]) {
+      var newMessage = users[roomId].username + ": " + message;
+      this.broadcast(newMessage);
+    }
+  }
+
   //Instructions
 
   //when a user clicks the send message button 
-  broadcast() {
+  private broadcast(message) {
     users.forEach(function (value) {
       console.log("Sending message to: " + value.roomId);
-      var val = 'Test message from admin: ' + value.roomId;
-      value.datachannel.send(val);
+      value.datachannel.send(message);
     })
   }
 

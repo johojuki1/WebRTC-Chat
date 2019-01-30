@@ -7,4 +7,6 @@ export class User {
     rtc: webkitRTCPeerConnection;
     //data channel
     datachannel: RTCDataChannel;
+    //displayname of user
+    username: string;
 }

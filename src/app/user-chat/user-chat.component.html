@@ -8,8 +8,7 @@
     <textarea readonly class="output" ng-model="string" name="chatbox"></textarea>
 </ul>
 <ul style="display:inline-block">
-    <textarea class="input" ng-model="string" name="chatbox"></textarea>
+    <textarea class="input" [(ngModel)]="inputBoxValue"></textarea>
     <button class="send" mat-raised-button color="primary" (click)="sendMessage()">Send</button>
 <ul>
-
-    <button (click)="connectionState()">Connection State</button>
+<button (click)="connectionState()">Connection State</button>

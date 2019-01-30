@@ -28,7 +28,7 @@ export class AdminChatComponent implements OnInit {
   }
 
   public sendMessage() {
-    this.rtcChatAdminService.broadcast();
+    
   }
 
 }

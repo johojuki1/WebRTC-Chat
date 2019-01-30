@@ -12,6 +12,8 @@ import { Subscriber } from 'rxjs';
 
 export class UserChatComponent implements OnInit {
 
+  inputBoxValue: string = '';
+
   constructor(
     private rtcChatUserService: RtcChatUserService,
     private settingsService: SettingsService,
@@ -34,7 +36,12 @@ export class UserChatComponent implements OnInit {
   }
 
   public sendMessage() {
-    this.rtcChatUserService.sendMessage();
+    this.rtcChatUserService.sendRtcMessage(
+      {
+        type: 'chat-request',
+        message: this.inputBoxValue,
+      })
+    this.inputBoxValue = '';
   }
 
   getRoomName(): string {
