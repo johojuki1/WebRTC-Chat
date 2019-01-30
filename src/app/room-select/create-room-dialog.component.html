@@ -1,13 +1,13 @@
 <h1 mat-dialog-title>Create A New Room</h1>
-<div mat-dialog-content>
+<div style="padding: 0px">
     <p>Room Name: </p>
     <input matInput #room>
 </div>
-<div mat-dialog-content>
+<div style="padding: 0px">
     <p>Your Name: </p>
     <input matInput #name>
 </div>
-<div style="padding-top: 30px"></div> 
+<div style="padding: 12px"></div> 
 <div mat-dialog-actions>
     <button mat-raised-button color="primary" (click)="onCreate(room.value, name.value)" cdkFocusInitial>Create</button>
     <button mat-raised-button color="primary" (click)="onCancel()">Cancel</button>

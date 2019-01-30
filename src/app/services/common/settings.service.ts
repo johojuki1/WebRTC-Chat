@@ -24,6 +24,8 @@ export class SettingsService {
   private userId: string;
   //ID of room, same as admin Id.
   private roomId: string;
+  //Name of admin of room.
+  private adminName: string;
 
   constructor() { }
 
@@ -58,6 +60,10 @@ export class SettingsService {
     return this.userId;
   }
 
+  public getAdminName() {
+    return this.adminName;
+  }
+
   //Variable Setters.
   public setRoomName(value: string) {
     this.roomName = value;
@@ -73,5 +79,9 @@ export class SettingsService {
 
   public setUserId(value:string) {
     this.userId = value;
+  }
+
+  public setAdminName(value:string) {
+    this.adminName = value;
   }
 }

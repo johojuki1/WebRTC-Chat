@@ -123,10 +123,11 @@ export class RoomSelectComponent implements OnInit {
   }
 
   //Functions for the room entry dialog.
-  openRoomEntryDialog(id: string, name: string): void {
+  openRoomEntryDialog(id: string, name: string, adminName: string): void {
     //store room information in settings.
     this.settingsService.setRoomId(id);
-    this.settingsService.setUserName(name);
+    this.settingsService.setRoomName(name);
+    this.settingsService.setAdminName(adminName)
     //open room entry dialog.
     this.dialog.open(EnterRoomDialog, {
       width: '250px',

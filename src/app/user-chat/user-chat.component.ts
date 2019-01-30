@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ChatSocketService } from '../services/chat/chatSocket.service';
-import { RtcChatUserService } from '../services/chat/rtc-chat-user.service';
+import { RtcChatUserService } from '../services/chat/rtc-chat-user.service'
 import { SettingsService } from '../services/common/settings.service'
 import { Router } from '@angular/router';
 import { Subscriber } from 'rxjs';
@@ -15,6 +14,7 @@ export class UserChatComponent implements OnInit {
 
   constructor(
     private rtcChatUserService: RtcChatUserService,
+    private settingsService: SettingsService,
   ) {
   }
 
@@ -35,5 +35,13 @@ export class UserChatComponent implements OnInit {
 
   public sendMessage() {
     this.rtcChatUserService.sendMessage();
+  }
+
+  getRoomName(): string {
+    return this.settingsService.getRoomName();
+  }
+
+  getAdminName(): string {
+    return this.settingsService.getAdminName();
   }
 }

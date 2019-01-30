@@ -1,0 +1,42 @@
+h1 {
+    color: purple;
+    padding: 0px;
+    h2 {
+        padding:0;
+        padding-left: 40px;
+        font-size: 50%;
+        font-weight: 300;
+        color: grey;
+   }
+}
+
+textarea.output {
+    width:70vw;
+    height:70vh;
+    max-width: 600px;
+    max-height: 400px;
+    resize: none;
+  }
+
+textarea.input {
+    width:57vw;
+    height:20vh;
+    min-height: 100px;
+    max-width: 488px;
+    max-height: 70px;
+    resize: none;
+    display: inline-block;
+    
+  }
+
+button.send {
+    display:inline-block; 
+    vertical-align: top; 
+    margin-left: 2px;
+    margin-right: 2px;
+    width:12.5vw;
+    height:22vh;
+    min-height: 105px;
+    max-width: 110px;
+    max-height: 70px;
+}

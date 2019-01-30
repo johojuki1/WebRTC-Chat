@@ -1,5 +1,15 @@
 <!-- app.component.html -->
-<h1>User Chat Room</h1>
+<h1> {{ this.getRoomName() }}
+    <h2>
+        Creator: {{ this.getAdminName() }}
+    </h2>
+</h1>
+<ul>
+    <textarea readonly class="output" ng-model="string" name="chatbox"></textarea>
+</ul>
+<ul style="display:inline-block">
+    <textarea class="input" ng-model="string" name="chatbox"></textarea>
+    <button class="send" mat-raised-button color="primary" (click)="sendMessage()">Send</button>
+<ul>
 
-<button (click)="connectionState()">Connection State</button>
-<button (click)="sendMessage()">Send Message</button>
+    <button (click)="connectionState()">Connection State</button>
