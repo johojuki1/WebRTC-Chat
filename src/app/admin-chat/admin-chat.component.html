@@ -1,5 +1,14 @@
 <!-- app.component.html -->
-<h1>Admin Chat Room</h1>
-
-<button (click)="connectionState()">Check state</button>
-<button (click)="sendMessage()">Send Offer</button>
+<h1> {{ this.getRoomName() }} (ADMIN)
+    <h2>
+        Creator: You
+    </h2>
+</h1>
+<ul>
+    <textarea readonly name="chatArea" class="output" [(ngModel)]="textAreaChat" type="text"></textarea>
+</ul>
+<ul style="display:inline-block">
+    <textarea class="input" [(ngModel)]="inputBoxValue" (keyup.enter)="onKeyEnter()"></textarea>
+    <button class="send" mat-raised-button color="primary" (click)="sendMessage()">Send</button>
+</ul>
+<button (click)="connectionState()">Connection State</button>

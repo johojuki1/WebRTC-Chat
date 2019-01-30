@@ -29,6 +29,8 @@ export class RoomSelectComponent implements OnInit {
 
   //QUICK CREATE ROOM FOR TESTING
   quickCreateRoom() {
+    this.settingsService.setRoomName('testRoom');
+    this.settingsService.setUserName('testUsername');
     this.sendMsg(
       {
         type: 'create-room',

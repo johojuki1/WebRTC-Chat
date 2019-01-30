@@ -150,13 +150,33 @@ export class RtcChatAdminService {
 
     //setup channel
     user.rtc.ondatachannel = event => {
-      event.channel.onopen = function () {
+      //when datachannel opens, broadcast to all users.
+      event.channel.onopen = event => {
+        this.broadcastGeneralMessage(user.username + " has connected to the room.")
       }
       event.channel.onmessage = event => {
         this.manageRtcMessage(event.data, user.roomId)
       }
     }
     return user;
+  }
+
+
+  //broadcast informational messages to users.
+  private broadcastGeneralMessage(data:string) {
+    var sentMessage =
+    {
+      type: 'general-message',
+      message: {
+        name: 'admin',
+        message: data,
+        type: 'info'
+      },
+    }
+    //push message to yourself
+    messagesOut.next(JSON.stringify(sentMessage));
+    //send message to others.
+    this.broadcast(JSON.parse(JSON.stringify(sentMessage)));
   }
 
   //manage contents of WebRTC message.
@@ -172,9 +192,26 @@ export class RtcChatAdminService {
     }
   }
 
+  //send request made by admin.
+  public sendAdminRtcMessage(data) {
+    var sentMessage =
+    {
+      type: 'add-chat',
+      message: {
+        name: this.settingsService.getUserName() + '(admin)',
+        message: data,
+        type: 'text'
+      },
+    }
+    //push message to yourself
+    messagesOut.next(JSON.stringify(sentMessage));
+    //send message to others.
+    this.broadcast(JSON.parse(JSON.stringify(sentMessage)));
+  }
+
   private onMessageRequest(message, roomId) {
     if (users[roomId]) {
-      var sentMessage = 
+      var sentMessage =
       {
         type: 'add-chat',
         message: {
@@ -183,7 +220,11 @@ export class RtcChatAdminService {
           type: 'text'
         },
       }
+      //push message to yourself
+      messagesOut.next(JSON.stringify(sentMessage));
+      //send message to others.
       this.broadcast(JSON.parse(JSON.stringify(sentMessage)));
+
     }
   }
 
