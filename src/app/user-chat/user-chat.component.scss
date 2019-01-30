@@ -15,15 +15,21 @@ textarea.output {
     height:70vh;
     max-width: 600px;
     max-height: 400px;
+    padding: 10px;
+    font-size: 18px;
+    font-style: Verdana;
     resize: none;
   }
 
 textarea.input {
     width:57vw;
     height:20vh;
-    min-height: 100px;
+    min-height: 85px;
     max-width: 488px;
-    max-height: 70px;
+    max-height: 50px;
+    padding: 10px;
+    font-size: 18px;
+    font-style: Verdana;
     resize: none;
     display: inline-block;
     

@@ -17,6 +17,7 @@ export class RtcChatUserService {
   private roomId: string;
   private adminRtc: webkitRTCPeerConnection;
   private dataChannel: RTCDataChannel;
+  
 
   constructor(
     private chatSocketService: ChatSocketService,

@@ -5,6 +5,7 @@ import { RtcService } from '../common/rtc.service';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { User } from '../../objects/user'
+import { Message } from '../../objects/message'
 
 //Stores values that is retrived by subscribed functions.
 var messagesOut: Subject<string> = new Subject<string>();
@@ -173,18 +174,25 @@ export class RtcChatAdminService {
 
   private onMessageRequest(message, roomId) {
     if (users[roomId]) {
-      var newMessage = users[roomId].username + ": " + message;
-      this.broadcast(newMessage);
+      var sentMessage = 
+      {
+        type: 'add-chat',
+        message: {
+          name: users[roomId].username,
+          message: message,
+          type: 'text'
+        },
+      }
+      this.broadcast(JSON.parse(JSON.stringify(sentMessage)));
     }
   }
 
-  //Instructions
-
-  //when a user clicks the send message button 
-  private broadcast(message) {
+  //broadcasts messages to all users.
+  private broadcast(data: object) {
     users.forEach(function (value) {
+      var s = data;
       console.log("Sending message to: " + value.roomId);
-      value.datachannel.send(message);
+      value.datachannel.send(JSON.stringify(data));
     })
   }
 
