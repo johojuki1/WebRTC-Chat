@@ -23,13 +23,23 @@ export class ChatSocketService {
 
   //connect to websocket.
   public connect() {
-    this.socketService.connect(this.settingsService.getChatWebsocketURL());
+    //check if there is a functional network, if there is don't connect.
+    if (this.socketService.wsState() != 1) {
+      this.socketService.connect(this.settingsService.getChatWebsocketURL());
+    } else {
+      //remove room if room exists.
+      this.sendMessage(
+        {
+          type: 'remove-room',
+        }
+      );
+    }
   }
 
   //Subscribe to chat socket.
   private subscribeData() {
     this.socketService.dataCallback$.subscribe(data => {
-      console.log("New data from websocket: " + data);
+      console.log("New message from websocket: " + data);
       this.messages.next(data);
     })
   }

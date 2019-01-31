@@ -50,11 +50,11 @@ wss.on('connection', function (connection) {
     connection.id = assignId();
     users[connection.id] = connection;
     //Tell user connection was successiful.
-    sendTo(connection, { 
-        type: "connection", 
+    sendTo(connection, {
+        type: "connection",
         id: connection.id,
         success: "true",
-     });
+    });
     console.log("User connected with id " + users[connection.id].id);
 
     //when server gets a message from a connected user 
@@ -72,53 +72,53 @@ wss.on('connection', function (connection) {
         //switching type of the user message.
         switch (data.type) {
             //Signalling functions.
-            case "offer": 
-            //for ex. UserA wants to call UserB 
-            console.log("Sending offer to: ", data.name); 
-				
-            //if UserB exists then send him offer details 
-            var conn = users[data.name];
-				
-            if(conn != null) { 
-               //setting that UserA connected with UserB 
-               connection.otherName = data.name; 
-					
-               sendTo(conn, { 
-                  type: "offer", 
-                  offer: data.offer, 
-                  userId: data.userId,
-               }); 
-            } 
-				
-            break;  
-				
-         case "answer": 
-            console.log("Sending answer to: ", data.name); 
-            //for ex. UserB answers UserA 
-            var conn = users[data.name]; 
-				
-            if(conn != null) { 
-               connection.otherName = data.name; 
-               sendTo(conn, { 
-                  type: "answer", 
-                  answer: data.answer 
-               }); 
-            } 
-				
-            break;  
-				
-         case "candidate": 
-            console.log("Sending candidate to:",data.name); 
-            var conn = users[data.name];  
-				
-            if(conn != null) { 
-               sendTo(conn, { 
-                  type: "candidate", 
-                  candidate: data.candidate 
-               });
-            } 
-				
-            break;  
+            case "offer":
+                //for ex. UserA wants to call UserB 
+                console.log("Sending offer to: ", data.name);
+
+                //if UserB exists then send him offer details 
+                var conn = users[data.name];
+
+                if (conn != null) {
+                    //setting that UserA connected with UserB 
+                    connection.otherName = data.name;
+
+                    sendTo(conn, {
+                        type: "offer",
+                        offer: data.offer,
+                        userId: data.userId,
+                    });
+                }
+
+                break;
+
+            case "answer":
+                console.log("Sending answer to: ", data.name);
+                //for ex. UserB answers UserA 
+                var conn = users[data.name];
+
+                if (conn != null) {
+                    connection.otherName = data.name;
+                    sendTo(conn, {
+                        type: "answer",
+                        answer: data.answer
+                    });
+                }
+
+                break;
+
+            case "candidate":
+                console.log("Sending candidate to:", data.name);
+                var conn = users[data.name];
+
+                if (conn != null) {
+                    sendTo(conn, {
+                        type: "candidate",
+                        candidate: data.candidate
+                    });
+                }
+
+                break;
 
             //when a user tries to create a room.
             case "create-room":
@@ -139,6 +139,14 @@ wss.on('connection', function (connection) {
                         success: true,
                         message: "Room successifully created."
                     });
+                }
+                break;
+            //when a user tries to remove a room
+            case "remove-room":
+                //checks if connection has an active room.
+                if (rooms[connection.id]) {
+                    console.log("Room deleted with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
+                    delete rooms[connection.id];
                 }
                 break;
             //when a user requests a list of available rooms

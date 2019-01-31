@@ -86,11 +86,6 @@ export class AdminChatComponent implements OnInit {
     return newMessageString;
   }
 
-  //returns state of connection.
-  public connectionState() {
-    this.rtcChatAdminService.connectionState();
-  }
-
   //gets the name of the room.
   getRoomName(): string {
     return this.settingsService.getRoomName();

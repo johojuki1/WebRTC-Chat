@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RtcChatUserService } from '../services/chat/rtc-chat-user.service'
 import { SettingsService } from '../services/common/settings.service'
 import { Message } from '../objects/message'
-import { Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-user-chat',
@@ -63,10 +63,6 @@ export class UserChatComponent implements OnInit {
   private createChatString(message: Message): string {
     var newMessageString = message.name + ': ' + message.message + '\n'
     return newMessageString;
-  }
-
-  public connectionState() {
-    this.rtcChatUserService.connectionState();
   }
 
   public sendMessage() {

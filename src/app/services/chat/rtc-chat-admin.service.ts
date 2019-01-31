@@ -53,7 +53,7 @@ export class RtcChatAdminService {
           this.onCandidate(message.candidate, message.roomId);
           break;
         default:
-          console.log("Message not recognised.");
+          console.log("Message not recognised. (Chat admin service) " + message.type);
       }
     });
   }
@@ -165,7 +165,7 @@ export class RtcChatAdminService {
 
 
   //broadcast informational messages to users.
-  private broadcastGeneralMessage(data:string) {
+  private broadcastGeneralMessage(data: string) {
     var sentMessage =
     {
       type: 'general-message',
@@ -233,19 +233,27 @@ export class RtcChatAdminService {
   //broadcasts messages to all users.
   private broadcast(data: object) {
     users.forEach(function (value) {
-      var s = data;
       console.log("Sending message to: " + value.roomId);
       value.datachannel.send(JSON.stringify(data));
     })
   }
 
-  connectionState() {
-    users.forEach(function (value) {
-      console.log(value.rtc.iceConnectionState);
-      console.log(value.rtc.iceGatheringState);
-      console.log(value.rtc.signalingState);
-      console.log(value.datachannel.readyState);
-      console.log(" ");
-    })
+  //disconnects the WEBRtc connection.
+  public disconnectRtc() {
+    try {
+      //inform users then disconnect connection.
+      this.broadcastGeneralMessage(this.settingsService.getUserName() + " (admin) has left the room. All users are disconnected.");
+    }
+    catch (err) { }
+    try {
+      users.forEach(function (value) {
+        //close all connections
+        value.datachannel.close;
+        value.rtc.close;
+      })
+      users = new Array<User>();
+    } catch (err) {
+      var s: string = '';
+    };
   }
 }

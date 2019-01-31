@@ -4,6 +4,8 @@ import { SettingsService } from '../services/common/settings.service'
 import { Room } from '../objects/room'
 import { MatDialog, MatDialogRef } from '@angular/material';
 import { Router } from '@angular/router';
+import { RtcChatUserService } from '../services/chat/rtc-chat-user.service'
+import { RtcChatAdminService } from '../services/chat/rtc-chat-admin.service'
 
 @Component({
   selector: 'app-room-select',
@@ -20,10 +22,16 @@ export class RoomSelectComponent implements OnInit {
     private settingsService: SettingsService,
     private dialog: MatDialog,
     private router: Router,
+    private chatUserService: RtcChatUserService,
+    private chatAdminService: RtcChatAdminService,
   ) {
   }
 
   ngOnInit() {
+    //first attempt to remove all RTC connections.
+    this.chatUserService.disconnectRtc();
+    this.chatAdminService.disconnectRtc();
+    //attempt to connect to socket.
     this.connect();
   }
 
@@ -57,21 +65,20 @@ export class RoomSelectComponent implements OnInit {
   }
 
   //enters a selected room.
-  enterRoom(id:string, name:string) {
+  enterRoom(id: string, name: string) {
     this.settingsService.setRoomId(id);
     this.settingsService.setRoomName(name);
   }
 
   //sends a message to websocket
   private sendMsg(message) {
-    console.log('new message from client to websocket: ', message);
+    console.log('Sending Data from client', message);
     this.chatSocketService.sendMessage(message);
   }
 
   //subscribes to the messages value in chatService
   private subscribe() {
     this.chatSocketService.messages.subscribe(msg => {
-      console.log("Response from websocket: " + msg);
       var message = JSON.parse(msg)
 
       //determine what to do with the replying message.
@@ -101,7 +108,7 @@ export class RoomSelectComponent implements OnInit {
         case "create-room":
           if (message.success) {
             //Navigate to administrator chat room.
-            this.router.navigate(['chat/admin']);
+            this.router.navigateByUrl('chat/admin', { skipLocationChange: true });
           }
           break;
 
@@ -118,9 +125,9 @@ export class RoomSelectComponent implements OnInit {
 
   //Functions for the room creation dialog.
   openRoomCreatorDialog(): void {
-
     this.dialog.open(CreateRoomDialog, {
       width: '250px',
+      disableClose: true,
     });
   }
 
@@ -133,6 +140,7 @@ export class RoomSelectComponent implements OnInit {
     //open room entry dialog.
     this.dialog.open(EnterRoomDialog, {
       width: '250px',
+      disableClose: true,
     });
   }
 }
@@ -147,21 +155,26 @@ export class CreateRoomDialog {
   constructor(
     public dialogRef: MatDialogRef<CreateRoomDialog>,
     private settingsService: SettingsService,
-    private chatSocketService: ChatSocketService,) { }
+    private chatSocketService: ChatSocketService, ) { }
 
   //response if the user decides to press create room button.
   onCreate(room: string, name: string): void {
-    this.settingsService.setRoomName(room);
-    this.settingsService.setUserName(name);
-    //send command to create room.
-    this.sendMsg(
-      {
-        type: 'create-room',
-        name: room,
-        adminName: name,
-      }
-    )
-    this.dialogRef.close();
+    //make sure room name and administrator name is more than 3 characters.
+    if (room.length > 2 && name.length > 2) {
+      this.settingsService.setRoomName(room);
+      this.settingsService.setUserName(name);
+      //send command to create room.
+      this.sendMsg(
+        {
+          type: 'create-room',
+          name: room,
+          adminName: name,
+        }
+      )
+      this.dialogRef.close();
+    } else {
+      alert("Room name and username must be longer than 3 characters.");
+    }
   }
 
   //sends a message to websocket
@@ -185,13 +198,13 @@ export class EnterRoomDialog {
     public dialogRef: MatDialogRef<EnterRoomDialog>,
     private settingsService: SettingsService,
     private router: Router,
-  ) {}
+  ) { }
 
   //response if the user decides to press create room button.
   onEnter(name: string): void {
     this.settingsService.setUserName(name);
     this.dialogRef.close();
-    this.router.navigate(['chat/user']);
+    this.router.navigateByUrl('chat/user', { skipLocationChange: true });
   }
 
   onCancel(): void {

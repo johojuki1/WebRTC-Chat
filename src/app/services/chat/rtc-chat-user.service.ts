@@ -17,7 +17,7 @@ export class RtcChatUserService {
   private roomId: string;
   private adminRtc: webkitRTCPeerConnection;
   private dataChannel: RTCDataChannel;
-  
+
 
   constructor(
     private chatSocketService: ChatSocketService,
@@ -127,18 +127,16 @@ export class RtcChatUserService {
     };
   }
 
-  //TEMP
-
-  connectionState() {
-    console.log(this.adminRtc.iceConnectionState);
-    console.log(this.adminRtc.iceGatheringState);
-    console.log(this.adminRtc.signalingState);
-    console.log(this.dataChannel.readyState);
-  }
-
   //when a user clicks the send message button 
   sendRtcMessage(message) {
     console.log("sending message: " + message);
     this.dataChannel.send(JSON.stringify(message));
   };
+
+  //disconnects the WEBRtc connection.
+  public disconnectRtc() {
+    try {
+      this.adminRtc.close();
+    } catch (err) {};
+  }
 }

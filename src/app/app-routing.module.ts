@@ -7,12 +7,18 @@ import { UserChatComponent } from './user-chat/user-chat.component';
 
 const routes: Routes = [
   {
+    path: '',
+    redirectTo: 'chat',
+    pathMatch: 'full'
+  },
+  {
     path: 'chat',
     component: RoomSelectComponent
   },
   {
     path: 'chat/admin',
     component: AdminChatComponent
+    
   },
   {
     path: 'chat/user',
