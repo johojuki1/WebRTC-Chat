@@ -14,7 +14,7 @@ export class ChatSocketService {
   public messages: Subject<Message>;
 
   constructor(
-    private socketService: SocketService,
+    public socketService: SocketService,
     private settingsService: SettingsService
   ) {
   }

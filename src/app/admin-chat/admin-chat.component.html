@@ -1,9 +1,14 @@
 <!-- app.component.html -->
-<h1> {{ this.getRoomName() }} (ADMIN)
-    <h2>
-        Creator: You
-    </h2>
-</h1>
+<div style="display: inline-block">
+    <h1 style="display: inline-block"> {{ this.getRoomName() }} (ADMIN)
+        <h2>
+            Creator: You
+        </h2>
+    </h1>
+    <button mat-raised-button class="socket" [ngStyle]="{'background-color': getSocketButtonColour()}" (click)="toggleSocket()">
+        {{ this.getSocketText() }}
+    </button>
+</div>
 <ul>
     <textarea readonly name="chatArea" class="output" [(ngModel)]="textAreaChat" type="text"></textarea>
 </ul>

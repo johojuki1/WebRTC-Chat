@@ -33,6 +33,7 @@ export class RtcChatAdminService {
     //subscribe to chat socket. 
     try {
       this.subscribeToSocket();
+      //inform user that room has been initiated.
     } catch (err) {
       //if socket does't exist, go back to choose chat screen.
       this.router.navigate(['chat']);
@@ -128,7 +129,8 @@ export class RtcChatAdminService {
     //detects if user has disconnected and deletes user.
     newUser.rtc.oniceconnectionstatechange = event => {
       if (newUser.rtc.iceConnectionState == 'disconnected') {
-        this.removeUser(newUser.roomId)
+        this.broadcastGeneralMessage(newUser.username + " has left the room.");
+        this.removeUser(newUser.roomId);
       }
     }
     return newUser;

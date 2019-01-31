@@ -50,7 +50,7 @@ export class UserChatComponent implements OnInit {
         //cast message into message object.
         var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
         this.messageList.push(chatMessage);
-        this.textAreaChat = chatMessage.message + '\n' + this.textAreaChat;
+        this.textAreaChat = '->   ' + chatMessage.message + '\n' + this.textAreaChat;
         break;
       default:
         console.log("RTC Message not recognised.");

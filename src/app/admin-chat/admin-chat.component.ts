@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RtcChatAdminService } from '../services/chat/rtc-chat-admin.service';
 import { SettingsService } from '../services/common/settings.service'
+import { ChatSocketService } from '../services/chat/chatSocket.service'
 import { Message } from '../objects/message'
 
 @Component({
@@ -11,21 +12,25 @@ import { Message } from '../objects/message'
 
 export class AdminChatComponent implements OnInit {
 
-  inputBoxValue: string;
   private messageList: Array<Message> = [];
+  inputBoxValue: string;
   textAreaChat: string = '';
+  private socketStatus: string = 'connected';
 
   constructor(
     private rtcChatAdminService: RtcChatAdminService,
     private settingsService: SettingsService,
+    private chatSocketService: ChatSocketService,
     private ref: ChangeDetectorRef,
   ) { }
 
   ngOnInit() {
     this.rtcChatAdminService.initiateService();
     this.subscribeRTCMessage();
+    this.subscribeSocketStatus();
   }
 
+  //subscribes to the messges recieved form webRTC connection.
   private subscribeRTCMessage() {
     this.rtcChatAdminService.eventCallback$.subscribe(data => {
       console.log("Message Recieved from User: " + data);
@@ -33,6 +38,25 @@ export class AdminChatComponent implements OnInit {
     })
   }
 
+  //subscribes to the status of the socket. Connected or disconnected.
+  private subscribeSocketStatus() {
+    this.chatSocketService.socketService.eventCallback$.subscribe(data => {
+      console.log("Socket Status Changed " + data);
+      this.socketStatus = data;
+      //if socket status is connected, attempt to list room.
+      if (this.socketStatus === "connected") {
+        var message: any = {
+          type: 'create-room',
+          name: this.settingsService.getRoomName(),
+          adminName: this.settingsService.getUserName(),
+        }
+        this.chatSocketService.messages.next(message);
+      }
+      this.refreshPage();
+    })
+  }
+
+  //manage received webRTC messages.
   private manageMessages(data) {
     var message = JSON.parse(data)
     //determine what to do with the replying message.
@@ -48,25 +72,26 @@ export class AdminChatComponent implements OnInit {
         //cast message into message object.
         var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
         this.messageList.push(chatMessage);
-        this.textAreaChat = chatMessage.message + '\n' + this.textAreaChat;
+        this.textAreaChat = '->   ' + chatMessage.message + '\n' + this.textAreaChat;
         break;
       default:
         console.log("RTC Message not recognised.");
     }
-    try {
-      this.ref.detectChanges();
-    } catch (error) { }
+    this.refreshPage()
   }
 
+  //Creates the string viewed by users.
   private createChatString(message: Message): string {
     var newMessageString = message.name + ': ' + message.message + '\n'
     return newMessageString;
   }
 
+  //returns state of connection.
   public connectionState() {
     this.rtcChatAdminService.connectionState();
   }
 
+  //gets the name of the room.
   getRoomName(): string {
     return this.settingsService.getRoomName();
   }
@@ -85,4 +110,45 @@ export class AdminChatComponent implements OnInit {
     this.sendMessage();
   }
 
+  //force page to refresh.
+  private refreshPage() {
+    try {
+      this.ref.detectChanges();
+    } catch (error) { }
+  }
+
+  getSocketButtonColour(): string {
+    switch (this.socketStatus) {
+      case "connected":
+        return 'green';
+      case "disconnected":
+        return 'red';
+      default:
+        return "yellow";
+    }
+  }
+
+  getSocketText(): string {
+    switch (this.socketStatus) {
+      case "connected":
+        return "Disconnect from Server";
+      case "disconnected":
+        return "Connect to Server";
+      default:
+        return "ERROR";
+    }
+  }
+
+  toggleSocket() {
+    switch (this.socketStatus) {
+      case "connected":
+        this.chatSocketService.disconnect();
+        break;
+      case "disconnected":
+        this.chatSocketService.connect();
+        break;
+      default:
+        console.log("Error occured when toggling socket.");
+    }
+  }
 }
