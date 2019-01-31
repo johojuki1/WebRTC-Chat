@@ -50,7 +50,7 @@ export class AdminChatComponent implements OnInit {
           name: this.settingsService.getRoomName(),
           adminName: this.settingsService.getUserName(),
         }
-        this.chatSocketService.messages.next(message);
+        this.chatSocketService.sendMessage(message);
       }
       this.refreshPage();
     })

@@ -65,14 +65,14 @@ export class RoomSelectComponent implements OnInit {
   //sends a message to websocket
   private sendMsg(message) {
     console.log('new message from client to websocket: ', message);
-    this.chatSocketService.messages.next(message);
+    this.chatSocketService.sendMessage(message);
   }
 
   //subscribes to the messages value in chatService
   private subscribe() {
     this.chatSocketService.messages.subscribe(msg => {
       console.log("Response from websocket: " + msg);
-      var message = JSON.parse(JSON.stringify(msg.message))
+      var message = JSON.parse(msg)
 
       //determine what to do with the replying message.
       switch (message.type) {
@@ -167,7 +167,7 @@ export class CreateRoomDialog {
   //sends a message to websocket
   private sendMsg(message) {
     console.log('new message from client to websocket: ', message);
-    this.chatSocketService.messages.next(message);
+    this.chatSocketService.sendMessage(message);
   }
 
   onCancel(): void {

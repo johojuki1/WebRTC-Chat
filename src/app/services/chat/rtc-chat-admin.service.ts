@@ -43,7 +43,7 @@ export class RtcChatAdminService {
   //subscribes to the messages value in chatService
   subscribeToSocket() {
     this.chatSocketService.messages.subscribe(msg => {
-      var message = JSON.parse(JSON.stringify(msg.message))
+      var message = JSON.parse(msg)
       //determine what to do with the replying message.
       switch (message.type) {
         case "offer":
@@ -101,7 +101,7 @@ export class RtcChatAdminService {
   //send message through websocket.
   private socketMessage(message, socketId) {
     message.name = socketId;
-    this.chatSocketService.messages.next(message);
+    this.chatSocketService.sendMessage(message);
   }
 
   //Initiates a user object.

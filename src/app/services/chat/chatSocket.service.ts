@@ -4,6 +4,7 @@ import { SettingsService } from '../common/settings.service';
 import { Subject } from 'rxjs';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { Message } from '@angular/compiler/src/i18n/i18n_ast';
 
 export interface Message {
   message: string;
@@ -11,24 +12,30 @@ export interface Message {
 
 @Injectable()
 export class ChatSocketService {
-  public messages: Subject<Message>;
+  public messages: Subject<string> = new Subject<string>();
 
   constructor(
     public socketService: SocketService,
     private settingsService: SettingsService
   ) {
+    this.subscribeData();
   }
 
   //connect to websocket.
   public connect() {
-    this.messages = <Subject<Message>>this.socketService
-      .connect(this.settingsService.getChatWebsocketURL())
-      .map((response: MessageEvent): Message => {
-        let data = JSON.parse(response.data);
-        return {
-          message: data
-        }
-      });
+    this.socketService.connect(this.settingsService.getChatWebsocketURL());
+  }
+
+  //Subscribe to chat socket.
+  private subscribeData() {
+    this.socketService.dataCallback$.subscribe(data => {
+      console.log("New data from websocket: " + data);
+      this.messages.next(data);
+    })
+  }
+
+  public sendMessage(data) {
+    this.socketService.send(data);
   }
 
   public disconnect() {

@@ -90,13 +90,13 @@ export class RtcChatUserService {
   private socketMessage(message) {
     //connect room id to message. As roomId and admin's username is the same, roomid will identify admin.
     message.name = this.settingsService.getRoomId();
-    this.chatSocketService.messages.next(message);
+    this.chatSocketService.sendMessage(message);
   }
 
   //subscribes to the messages value in chatService
   subscribe() {
     this.chatSocketService.messages.subscribe(msg => {
-      var message = JSON.parse(JSON.stringify(msg.message))
+      var message = JSON.parse(msg)
       //determine what to do with the replying message.
       switch (message.type) {
         case "answer":
