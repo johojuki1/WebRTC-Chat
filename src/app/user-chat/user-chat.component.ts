@@ -100,4 +100,8 @@ export class UserChatComponent implements OnInit {
   getAdminName(): string {
     return this.settingsService.getAdminName();
   }
+
+  showState() {
+    this.rtcChatUserService.showState();
+  }
 }

@@ -160,4 +160,8 @@ export class AdminChatComponent implements OnInit {
         console.log("Error occured when toggling socket.");
     }
   }
+
+  showState(){
+    this.rtcChatAdminService.showState();
+  }
 }

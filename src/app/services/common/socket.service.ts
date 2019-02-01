@@ -51,7 +51,8 @@ export class SocketService {
 
   //sends data on websocket.
   public send(data) {
-    this.ws.send(JSON.stringify(data));
+    var sentData = JSON.stringify(data);
+    this.ws.send(sentData);
   }
 
   //disconnects client from the socket.

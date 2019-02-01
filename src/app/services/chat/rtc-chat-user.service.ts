@@ -17,6 +17,7 @@ export class RtcChatUserService {
   private roomId: string;
   private adminRtc: RTCPeerConnection;
   private dataChannel: RTCDataChannel;
+  private localDesc;
 
 
   constructor(
@@ -45,7 +46,7 @@ export class RtcChatUserService {
     this.adminRtc = this.rtcService.setupConnection();
     //setup ice handling.
     this.adminRtc.onicecandidate = event => {
-      if (event.candidate) {
+      if (event.candidate && this.roomId) {
         this.socketMessage({
           type: "candidate",
           candidate: event.candidate,
@@ -57,7 +58,7 @@ export class RtcChatUserService {
 
   //Make an offer to admin.
   async sendOffer() {
-    this.adminRtc.setLocalDescription(
+    this.localDesc =
       await this.adminRtc.createOffer({
         offerToReceiveAudio: true
       })
@@ -73,11 +74,11 @@ export class RtcChatUserService {
           });
           return event;
         })
-    )
   }
 
   //when an answer is recieved. Also assigns an id from administrator.
   private onAnswer(answer, assignedId) {
+    this.adminRtc.setLocalDescription(this.localDesc);
     this.adminRtc.setRemoteDescription(new RTCSessionDescription(answer))
     this.roomId = assignedId;
   }
@@ -146,5 +147,13 @@ export class RtcChatUserService {
       this.dataChannel = new RTCDataChannel();
       this.adminRtc = new RTCPeerConnection();
     } catch (err) { };
+  }
+
+  public showState() {
+    //close all connections
+    console.log("Signalling State: " + this.adminRtc.signalingState);
+    console.log("Ice Connection: " + this.adminRtc.iceConnectionState);
+    console.log("Ice Gathering: " + this.adminRtc.iceGatheringState);
+    console.log("Data channel: " + this.dataChannel.readyState);
   }
 }

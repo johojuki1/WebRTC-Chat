@@ -97,6 +97,7 @@ export class RtcChatAdminService {
   //determines what happens when candidates are recieved.
   private onCandidate(candidate, roomId) {
     if (users[roomId]) {
+      var cand = new RTCIceCandidate(candidate);
       users[roomId].rtc.addIceCandidate(new RTCIceCandidate(candidate));
     }
   }
@@ -159,7 +160,7 @@ export class RtcChatAdminService {
       event.channel.onopen = event => {
         this.broadcastGeneralMessage(user.username + " has connected to the room.")
         //create request to send all old messages to new user.
-        var sentMessage = 
+        var sentMessage =
         {
           type: 'refresh-chatbox',
           id: user.roomId,
@@ -176,7 +177,7 @@ export class RtcChatAdminService {
   //used by component to send history of messages to user.
   public sendAllMessages(id: number, messageHistory) {
     //create request to send all old messages to new user.
-    var sentMessage = 
+    var sentMessage =
     {
       type: 'refresh-chatbox',
       messages: messageHistory,
@@ -274,5 +275,15 @@ export class RtcChatAdminService {
       })
       users = new Array<User>();
     } catch (err) { };
+  }
+
+  public showState() {
+    users.forEach(function (value) {
+      //close all connections
+      console.log("Signalling State: " + value.rtc.signalingState);
+      console.log("Ice Connection: " + value.rtc.iceConnectionState);
+      console.log("Ice Gathering: " + value.rtc.iceGatheringState);
+      console.log("Data channel: " + value.datachannel.readyState);
+    })
   }
 }

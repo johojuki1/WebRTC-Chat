@@ -77,7 +77,7 @@ wss.on('connection', function (connection) {
             //Signalling functions.
             case "offer":
                 //for ex. UserA wants to call UserB 
-                outputLog("Sending offer to: ", data.name);
+                outputLog("Sending offer to: " + data.name);
 
                 //if UserB and requested room exists then send him offer details 
                 var conn = users[data.name];
@@ -100,7 +100,7 @@ wss.on('connection', function (connection) {
                 break;
 
             case "answer":
-                outputLog("Sending answer to: ", data.name);
+                outputLog("Sending answer to: " + data.name);
                 //for ex. UserB answers UserA 
                 var conn = users[data.name];
 
@@ -108,7 +108,8 @@ wss.on('connection', function (connection) {
                     connection.otherName = data.name;
                     sendTo(conn, {
                         type: "answer",
-                        answer: data.answer
+                        answer: data.answer,
+                        roomId: data.roomId,
                     });
                 }
 
@@ -120,7 +121,8 @@ wss.on('connection', function (connection) {
                 if (conn != null) {
                     sendTo(conn, {
                         type: "candidate",
-                        candidate: data.candidate
+                        candidate: data.candidate,
+                        roomId: data.roomId
                     });
                 }
 
