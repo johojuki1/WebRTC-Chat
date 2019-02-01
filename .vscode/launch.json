@@ -16,14 +16,14 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "http://localhost:4200",
+            "url": "http://localhost:9091",
             "webRoot": "${workspaceFolder}"
         },
         {
             "type": "firefox",
             "request": "launch",
             "name": "Launch Firefox against localhost",
-            "url": "http://localhost:4200",
+            "url": "http://localhost:9091",
             "webRoot": "${workspaceFolder}"
         }
     ]
