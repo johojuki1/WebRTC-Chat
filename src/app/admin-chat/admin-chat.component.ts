@@ -3,6 +3,7 @@ import { RtcChatAdminService } from '../services/chat/rtc-chat-admin.service';
 import { SettingsService } from '../services/common/settings.service'
 import { ChatSocketService } from '../services/chat/chatSocket.service'
 import { Message } from '../objects/message'
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-chat',
@@ -22,12 +23,19 @@ export class AdminChatComponent implements OnInit {
     private settingsService: SettingsService,
     private chatSocketService: ChatSocketService,
     private ref: ChangeDetectorRef,
+    private router: Router,
   ) { }
 
   ngOnInit() {
-    this.rtcChatAdminService.initiateService();
-    this.subscribeRTCMessage();
-    this.subscribeSocketStatus();
+    //check if admin name is set, if it is it means user is in wrong place. Redirect.
+
+    if (this.settingsService.getAdminName().length != 0) {
+      this.router.navigateByUrl('chat');
+    } else {
+      this.rtcChatAdminService.initiateService();
+      this.subscribeRTCMessage();
+      this.subscribeSocketStatus();
+    }
   }
 
   //subscribes to the messges recieved form webRTC connection.
@@ -43,8 +51,8 @@ export class AdminChatComponent implements OnInit {
     this.chatSocketService.socketService.eventCallback$.subscribe(data => {
       console.log("Socket Status Changed " + data);
       this.socketStatus = data;
-      //if socket status is connected, attempt to list room.
-      if (this.socketStatus === "connected") {
+      //if socket status is connected, attempt to list room. Only do this if admin name does not exist.
+      if (this.socketStatus === "connected" && this.settingsService.getAdminName().length == 0) {
         var message: any = {
           type: 'create-room',
           name: this.settingsService.getRoomName(),

@@ -11,13 +11,13 @@ export class RtcService {
     private settingsService: SettingsService,
   ) { }
 
-  public setupConnection(): webkitRTCPeerConnection {
+  public setupConnection(): RTCPeerConnection {
     var configuration = {
       "iceServers": [{ urls: this.settingsService.getIceServerURL() }],  
       "optional": [{ RtpDataChannels: true }]
     };
 
-    var myConnection = new webkitRTCPeerConnection(configuration);
+    var myConnection = new RTCPeerConnection(configuration);
     console.log("RTCPeerConnection object was created");
     return myConnection;
   };

@@ -28,6 +28,8 @@ export class RoomSelectComponent implements OnInit {
   }
 
   ngOnInit() {
+    //reset all settings.
+    this.settingsService.reset();
     //first attempt to remove all RTC connections.
     this.chatUserService.disconnectRtc();
     this.chatAdminService.disconnectRtc();
@@ -163,6 +165,8 @@ export class CreateRoomDialog {
     if (room.length > 2 && name.length > 2) {
       this.settingsService.setRoomName(room);
       this.settingsService.setUserName(name);
+      //Clear administrator name;
+      this.settingsService.setAdminName('');
       //send command to create room.
       this.sendMsg(
         {
@@ -179,7 +183,7 @@ export class CreateRoomDialog {
 
   //sends a message to websocket
   private sendMsg(message) {
-    console.log('new message from client to websocket: ', message);
+    console.log('New message from client to websocket: ', message);
     this.chatSocketService.sendMessage(message);
   }
 

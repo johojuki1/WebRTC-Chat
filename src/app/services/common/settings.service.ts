@@ -27,7 +27,9 @@ export class SettingsService {
   //Name of admin of room.
   private adminName: string;
 
-  constructor() { }
+  constructor() {
+    this.adminName = '';
+   }
 
   //get url of socket.
   public getChatWebsocketURL() {
@@ -41,6 +43,10 @@ export class SettingsService {
 
   public getDataChannelOptions(){
     return DATA_CHANNEL_OPTIONS;
+  }
+
+  //functions for controlling stored variables
+  public reset (){
   }
 
   //Variable getters.

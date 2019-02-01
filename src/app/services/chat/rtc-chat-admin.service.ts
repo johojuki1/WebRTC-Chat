@@ -66,20 +66,24 @@ export class RtcChatAdminService {
     newUser = this.initiateUser(socketId, name);
     newUser = this.setupDataChannel(newUser);
     newUser.rtc.setRemoteDescription(new RTCSessionDescription(offer));
+    var message;
+
     newUser.rtc.setLocalDescription(
+      //wait for answer to be created, then send answer.
       await newUser.rtc.createAnswer()
-        .then(function (answer) {
-          return answer;
+        .then(event => {
+          message = {
+            type: "answer",
+            answer: event,
+            roomId: newUser.roomId,
+          };
+          this.socketMessage(message, socketId);
+          return event;
         }))
     //add to list of users
     users[newUser.roomId] = newUser;
     console.log("Admin - Added user with id: " + newUser.roomId);
     //send answer.
-    this.socketMessage({
-      type: "answer",
-      answer: newUser.rtc.localDescription,
-      roomId: newUser.roomId,
-    }, socketId);
   }
 
   //Generates a new id for the user. Used for RTC communication.
@@ -211,6 +215,7 @@ export class RtcChatAdminService {
     this.broadcast(JSON.parse(JSON.stringify(sentMessage)));
   }
 
+  //determines what happns when a message is received.
   private onMessageRequest(message, roomId) {
     if (users[roomId]) {
       var sentMessage =
@@ -252,8 +257,6 @@ export class RtcChatAdminService {
         value.rtc.close;
       })
       users = new Array<User>();
-    } catch (err) {
-      var s: string = '';
-    };
+    } catch (err) { };
   }
 }

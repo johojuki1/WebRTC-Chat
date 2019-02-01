@@ -15,7 +15,7 @@ export class RtcChatUserService {
 
   eventCallback$ = messagesOut.asObservable(); // Stream
   private roomId: string;
-  private adminRtc: webkitRTCPeerConnection;
+  private adminRtc: RTCPeerConnection;
   private dataChannel: RTCDataChannel;
 
 
@@ -61,18 +61,19 @@ export class RtcChatUserService {
       await this.adminRtc.createOffer({
         offerToReceiveAudio: true
       })
-        .then(function (offer) {
-          return offer;
+        //wait for response then send offer.
+        .then(event => {
+          this.socketMessage({
+            type: 'offer',
+            offer: event,
+            userId: {
+              id: this.settingsService.getUserId(),
+              name: this.settingsService.getUserName(),
+            }
+          });
+          return event;
         })
     )
-    this.socketMessage({
-      type: 'offer',
-      offer: this.adminRtc.localDescription,
-      userId: {
-        id: this.settingsService.getUserId(),
-        name: this.settingsService.getUserName(),
-      }
-    });
   }
 
   //when an answer is recieved. Also assigns an id from administrator.
@@ -96,7 +97,7 @@ export class RtcChatUserService {
   //subscribes to the messages value in chatService
   subscribe() {
     this.chatSocketService.messages.subscribe(msg => {
-      var message = JSON.parse(msg)
+      var message = JSON.parse(msg);
       //determine what to do with the replying message.
       switch (message.type) {
         case "answer":
@@ -104,6 +105,10 @@ export class RtcChatUserService {
           break;
         case "candidate":
           this.onCandidate(message.candidate);
+          break;
+        case "connect-failed":
+          alert("Connection failed. Room not found.")
+          this.router.navigateByUrl('chat');
           break;
         default:
           console.log("Message not recognised.");
@@ -136,7 +141,10 @@ export class RtcChatUserService {
   //disconnects the WEBRtc connection.
   public disconnectRtc() {
     try {
+      this.dataChannel.close();
       this.adminRtc.close();
-    } catch (err) {};
+      this.dataChannel = new RTCDataChannel();
+      this.adminRtc = new RTCPeerConnection();
+    } catch (err) { };
   }
 }

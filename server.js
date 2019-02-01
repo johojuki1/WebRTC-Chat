@@ -76,10 +76,10 @@ wss.on('connection', function (connection) {
                 //for ex. UserA wants to call UserB 
                 console.log("Sending offer to: ", data.name);
 
-                //if UserB exists then send him offer details 
+                //if UserB and requested room exists then send him offer details 
                 var conn = users[data.name];
 
-                if (conn != null) {
+                if (conn != null && rooms[data.name] != null) {
                     //setting that UserA connected with UserB 
                     connection.otherName = data.name;
 
@@ -87,6 +87,10 @@ wss.on('connection', function (connection) {
                         type: "offer",
                         offer: data.offer,
                         userId: data.userId,
+                    });
+                } else {
+                    sendTo(connection, {
+                        type: "connect-failed",
                     });
                 }
 
