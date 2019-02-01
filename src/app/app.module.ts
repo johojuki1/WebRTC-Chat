@@ -19,6 +19,7 @@ import { AdminChatComponent } from './admin-chat/admin-chat.component';
 import { UserChatComponent } from './user-chat/user-chat.component';
 import { RtcChatAdminService } from './services/chat/rtc-chat-admin.service';
 import { RtcChatUserService } from './services/chat/rtc-chat-user.service';
+import { ServerLogComponent } from './server-log/server-log.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { RtcChatUserService } from './services/chat/rtc-chat-user.service';
     EnterRoomDialog,
     AdminChatComponent,
     UserChatComponent,
+    ServerLogComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,41 @@
+h1 {
+    color: purple;
+    padding: 0px;
+}
+
+textarea.output {
+    width:70vw;
+    height:70vh;
+    max-width: 600px;
+    max-height: 400px;
+    padding: 10px;
+    font-size: 18px;
+    font-style: Verdana;
+    resize: none;
+  }
+
+textarea.input {
+    width:57vw;
+    height:20vh;
+    min-height: 85px;
+    max-width: 488px;
+    max-height: 50px;
+    padding: 10px;
+    font-size: 18px;
+    font-style: Verdana;
+    resize: none;
+    display: inline-block;
+    
+  }
+
+button.send {
+    display:inline-block; 
+    vertical-align: top; 
+    margin-left: 2px;
+    margin-right: 2px;
+    width:12.5vw;
+    height:22vh;
+    min-height: 105px;
+    max-width: 110px;
+    max-height: 70px;
+}

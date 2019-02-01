@@ -44,8 +44,8 @@ export class SocketService {
     this.ws.onclose = event => {
       this.socketStatus.next("disconnected")
     };
-    this.ws.onmessage = event => { 
-      this.subject.next(event.data) 
+    this.ws.onmessage = event => {
+      this.subject.next(event.data)
     };
   }
 
@@ -56,6 +56,8 @@ export class SocketService {
 
   //disconnects client from the socket.
   public disconnect() {
-    this.ws.close();
+    try {
+      this.ws.close();
+     } catch (err) {};
   }
 }

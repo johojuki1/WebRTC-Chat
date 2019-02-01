@@ -43,6 +43,9 @@ var users = {};
 //all connected rooms to server
 var rooms = {};
 
+//socket for outputting server logs.
+var logSocket;
+
 //when a user connects to our sever 
 wss.on('connection', function (connection) {
 
@@ -55,7 +58,7 @@ wss.on('connection', function (connection) {
         id: connection.id,
         success: "true",
     });
-    console.log("User connected with id " + users[connection.id].id);
+    outputLog("User connected with id " + users[connection.id].id);
 
     //when server gets a message from a connected user 
     connection.on('message', function (message) {
@@ -65,7 +68,7 @@ wss.on('connection', function (connection) {
         try {
             data = JSON.parse(message);
         } catch (e) {
-            console.log("Invalid JSON");
+            outputLog("Invalid JSON");
             data = {};
         }
 
@@ -74,7 +77,7 @@ wss.on('connection', function (connection) {
             //Signalling functions.
             case "offer":
                 //for ex. UserA wants to call UserB 
-                console.log("Sending offer to: ", data.name);
+                outputLog("Sending offer to: ", data.name);
 
                 //if UserB and requested room exists then send him offer details 
                 var conn = users[data.name];
@@ -97,7 +100,7 @@ wss.on('connection', function (connection) {
                 break;
 
             case "answer":
-                console.log("Sending answer to: ", data.name);
+                outputLog("Sending answer to: ", data.name);
                 //for ex. UserB answers UserA 
                 var conn = users[data.name];
 
@@ -112,7 +115,6 @@ wss.on('connection', function (connection) {
                 break;
 
             case "candidate":
-                console.log("Sending candidate to:", data.name);
                 var conn = users[data.name];
 
                 if (conn != null) {
@@ -136,7 +138,7 @@ wss.on('connection', function (connection) {
                 } else {
                     //create a room under the specifications within the message.
                     rooms[connection.id] = new Room(connection.id, data.name, data.adminName);
-                    console.log("New room created with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
+                    outputLog("New room created with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
                     //if room is successifully created, inform client.
                     sendTo(connection, {
                         type: "create-room",
@@ -149,7 +151,7 @@ wss.on('connection', function (connection) {
             case "remove-room":
                 //checks if connection has an active room.
                 if (rooms[connection.id]) {
-                    console.log("Room deleted with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
+                    outputLog("Room deleted with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
                     delete rooms[connection.id];
                 }
                 break;
@@ -161,6 +163,14 @@ wss.on('connection', function (connection) {
                     message: rooms
                 })
                 break;
+            //when a user requests the connection for server logs.
+            case "get-server-logs":
+                //pass socket to logSocket.
+                outputLog("User " + connection.id + " has moved to log socket.");
+                logSocket = connection;
+                //remove the user.
+                closeConnection(connection);
+            break;
             default:
                 sendTo(connection, {
                     type: "error",
@@ -188,13 +198,21 @@ function closeConnection(connection) {
     if (connection.id) {
         if (users[connection.id]) {
             delete users[connection.id];
-            console.log("User has been removed: " + connection.id)
+            outputLog("User has been removed: " + connection.id)
         }
         if (rooms[connection.id]) {
-            console.log("Room deleted with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
+            outputLog("Room deleted with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
             delete rooms[connection.id];
         }
     }
+}
+
+function outputLog(message) {
+    console.log(message)
+    //send through to log socket.
+    try {
+        logSocket.send(message);
+    } catch(err) {};
 }
 
 function assignId() {

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { SettingsService } from '../services/common/settings.service'
 
 @Component({
   selector: 'app-sidebar',
@@ -10,13 +11,14 @@ export class SidebarComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private settingsService: SettingsService,
   ) { }
 
   ngOnInit() {
   }
 
-  goToChatMenu() {
-    this.router.navigateByUrl('chat', {replaceUrl: true});
+  resetAdminValue() {
+    this.settingsService.setAdminName('default');
   }
 
 }

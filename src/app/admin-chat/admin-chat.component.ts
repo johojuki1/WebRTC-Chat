@@ -72,6 +72,8 @@ export class AdminChatComponent implements OnInit {
       case "add-chat":
         //cast message into message object.
         var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
+        //remove all newline symbols incase any were missed.
+        chatMessage.message = chatMessage.message.replace("\n", "");
         this.messageList.push(chatMessage);
         this.textAreaChat = this.createChatString(chatMessage) + this.textAreaChat;
         break;
@@ -82,6 +84,10 @@ export class AdminChatComponent implements OnInit {
         this.messageList.push(chatMessage);
         this.textAreaChat = '->   ' + chatMessage.message + '\n' + this.textAreaChat;
         break;
+      //new user has connected, message history is requested.
+      case "refresh-chatbox":
+        this.rtcChatAdminService.sendAllMessages(message.id, this.messageList);
+      break;
       default:
         console.log("RTC Message not recognised.");
     }

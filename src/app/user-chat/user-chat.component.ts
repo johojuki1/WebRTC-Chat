@@ -52,6 +52,17 @@ export class UserChatComponent implements OnInit {
         this.messageList.push(chatMessage);
         this.textAreaChat = '->   ' + chatMessage.message + '\n' + this.textAreaChat;
         break;
+      case "refresh-chatbox":
+        //reset the chat box with values provided by administrator.
+        this.messageList = <Array<Message>>JSON.parse(JSON.stringify(message.messages));
+        this.textAreaChat = '';
+        this.messageList.forEach(message => {
+          if (message.type === 'info') {
+            this.textAreaChat = '->   ' + message.message + '\n' + this.textAreaChat;
+          } else {
+            this.textAreaChat = this.createChatString(message) + this.textAreaChat;
+          }
+        })
       default:
         console.log("RTC Message not recognised.");
     }

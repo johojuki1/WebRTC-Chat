@@ -5,7 +5,6 @@ import { RtcService } from '../common/rtc.service';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { User } from '../../objects/user'
-import { Message } from '../../objects/message'
 
 //Stores values that is retrived by subscribed functions.
 var messagesOut: Subject<string> = new Subject<string>();
@@ -159,6 +158,13 @@ export class RtcChatAdminService {
       //when datachannel opens, broadcast to all users.
       event.channel.onopen = event => {
         this.broadcastGeneralMessage(user.username + " has connected to the room.")
+        //create request to send all old messages to new user.
+        var sentMessage = 
+        {
+          type: 'refresh-chatbox',
+          id: user.roomId,
+        }
+        messagesOut.next(JSON.stringify(sentMessage));
       }
       event.channel.onmessage = event => {
         this.manageRtcMessage(event.data, user.roomId)
@@ -167,6 +173,16 @@ export class RtcChatAdminService {
     return user;
   }
 
+  //used by component to send history of messages to user.
+  public sendAllMessages(id: number, messageHistory) {
+    //create request to send all old messages to new user.
+    var sentMessage = 
+    {
+      type: 'refresh-chatbox',
+      messages: messageHistory,
+    }
+    users[id].datachannel.send(JSON.stringify(sentMessage));
+  }
 
   //broadcast informational messages to users.
   private broadcastGeneralMessage(data: string) {
