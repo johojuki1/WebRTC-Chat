@@ -22,7 +22,7 @@ export class RtcService {
     }
     var configuration = {
       "iceServers": servers,
-      "optional": [{ RtpDataChannels: true }]
+      
     };
 
     var myConnection = new RTCPeerConnection(configuration);

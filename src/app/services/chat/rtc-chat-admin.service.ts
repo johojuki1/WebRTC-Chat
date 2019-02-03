@@ -156,21 +156,19 @@ export class RtcChatAdminService {
     user.datachannel = user.rtc.createDataChannel(user.roomId, this.settingsService.getDataChannelOptions());
 
     //setup channel
-    user.rtc.ondatachannel = event => {
-      //when datachannel opens, broadcast to all users.
-      event.channel.onopen = event => {
-        this.broadcastGeneralMessage(user.username + " has connected to the room.")
-        //create request to send all old messages to new user.
-        var sentMessage =
-        {
-          type: 'refresh-chatbox',
-          id: user.roomId,
-        }
-        messagesOut.next(JSON.stringify(sentMessage));
+    //when datachannel opens, broadcast to all users.
+    user.datachannel.onopen = event => {
+      this.broadcastGeneralMessage(user.username + " has connected to the room.")
+      //create request to send all old messages to new user.
+      var sentMessage =
+      {
+        type: 'refresh-chatbox',
+        id: user.roomId,
       }
-      event.channel.onmessage = event => {
-        this.manageRtcMessage(event.data, user.roomId)
-      }
+      messagesOut.next(JSON.stringify(sentMessage));
+    }
+    user.datachannel.onmessage = event => {
+      this.manageRtcMessage(event.data, user.roomId)
     }
     return user;
   }
@@ -257,7 +255,11 @@ export class RtcChatAdminService {
   private broadcast(data: object) {
     users.forEach(function (value) {
       console.log("Sending message to: " + value.roomId);
-      value.datachannel.send(JSON.stringify(data));
+      try {
+        value.datachannel.send(JSON.stringify(data));
+      } catch (err) {
+        console.log("Failed to send message to: " + value.roomId);
+      }
     })
   }
 

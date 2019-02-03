@@ -18,7 +18,7 @@ export class RtcChatUserService {
   public adminRtc: RTCPeerConnection;
   private dataChannel: RTCDataChannel;
   private storedCandidates: Array<RTCIceCandidate>;
-  private test:boolean = false;
+  private test: boolean = false;
 
   constructor(
     private chatSocketService: ChatSocketService,
@@ -124,7 +124,7 @@ export class RtcChatUserService {
         //determine what to do with the replying message.
         switch (message.type) {
           case "answer":
-              this.onAnswer(message.answer, message.roomId);
+            this.onAnswer(message.answer, message.roomId);
             break;
           case "candidate":
             this.onCandidate(message.candidate);
@@ -134,17 +134,10 @@ export class RtcChatUserService {
             this.router.navigateByUrl('chat');
             break;
           default:
-            console.log("Message not recognised.");
+            console.log("Message not recognised. User Service");
         }
       }
     });
-  }
-
-  private checkSignalingState(state: string):boolean {
-    if (this.adminRtc.signalingState === state) {
-      return true
-    }
-    return false;
   }
 
   //creating data channel 
@@ -164,7 +157,21 @@ export class RtcChatUserService {
   //when a user clicks the send message button 
   sendRtcMessage(message) {
     console.log("sending message: " + message);
-    this.dataChannel.send(JSON.stringify(message));
+    try {
+      this.dataChannel.send(JSON.stringify(message));
+    } catch (err) {
+      console.log("Failed to send message to admin.");
+      var sentMessage =
+      {
+        type: 'general-message',
+        message: {
+          name: 'admin',
+          message: "Message failed to send.",
+          type: 'info'
+        },
+      }
+      messagesOut.next(JSON.stringify(sentMessage));
+    }
   };
 
   //disconnects the WEBRtc connection.
