@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { SocketService } from '../services/common/socket.service';
 import { SettingsService } from '../services/common/settings.service'
+import { RtcChatUserService } from '../services/chat/rtc-chat-user.service'
+import { RtcChatAdminService } from '../services/chat/rtc-chat-admin.service'
 
 @Component({
   selector: 'app-server-log',
@@ -16,11 +18,16 @@ export class ServerLogComponent implements OnInit {
   constructor(
     private socketService: SocketService,
     private settingsService: SettingsService,
+    private chatUserService: RtcChatUserService,
+    private chatAdminService: RtcChatAdminService,
   ) {
     this.connect(this.settingsService.getChatWebsocketURL());
   }
 
   ngOnInit() {
+    //attempt to disconnect all RTC connections
+    this.chatUserService.disconnectRtc();
+    this.chatAdminService.disconnectRtc();
     this.socketService.disconnect();
   }
 

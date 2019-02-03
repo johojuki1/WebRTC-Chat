@@ -154,8 +154,7 @@ export class RtcChatAdminService {
   setupDataChannel(user: User): User {
     //create datachannel
     user.datachannel = user.rtc.createDataChannel(user.roomId, this.settingsService.getDataChannelOptions());
-
-    //setup channel
+    
     //when datachannel opens, broadcast to all users.
     user.datachannel.onopen = event => {
       this.broadcastGeneralMessage(user.username + " has connected to the room.")
@@ -167,8 +166,11 @@ export class RtcChatAdminService {
       }
       messagesOut.next(JSON.stringify(sentMessage));
     }
-    user.datachannel.onmessage = event => {
-      this.manageRtcMessage(event.data, user.roomId)
+
+    user.rtc.ondatachannel = event => {
+      event.channel.onmessage = event => {
+        this.manageRtcMessage(event.data, user.roomId)
+      }
     }
     return user;
   }
