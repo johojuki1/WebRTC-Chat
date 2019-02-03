@@ -16,7 +16,7 @@ export class ServerLogComponent implements OnInit {
   constructor(
     private socketService: SocketService,
     private settingsService: SettingsService,
-  ) { 
+  ) {
     this.connect(this.settingsService.getChatWebsocketURL());
   }
 
@@ -41,4 +41,30 @@ export class ServerLogComponent implements OnInit {
       this.serverLog = event.data + '\n' + this.serverLog;
     };
   }
+
+  getTurnButtonColour(): string {
+    if (this.settingsService.getTurn()) {
+      return "green";
+    } else {
+      return "red";
+    }
+  }
+
+
+  getTurnText(): string {
+    if (this.settingsService.getTurn()) {
+      return "On"
+    } else {
+      return "Off"
+    }
+  }
+
+  toggleTurn() {
+    if (this.settingsService.getTurn()) {
+      this.settingsService.setTurn(false);
+    } else {
+      this.settingsService.setTurn(true);
+    }
+  }
+
 }

@@ -14,7 +14,7 @@ import { EnterRoomDialog } from './room-select/room-select.component';
 import { SocketService } from './services/common/socket.service';
 import { SettingsService } from './services/common/settings.service';
 import { ChatSocketService } from './services/chat/chatSocket.service'
-import { RtcService} from './services/common/rtc.service';
+import { RtcService } from './services/common/rtc.service';
 import { AdminChatComponent } from './admin-chat/admin-chat.component';
 import { UserChatComponent } from './user-chat/user-chat.component';
 import { RtcChatAdminService } from './services/chat/rtc-chat-admin.service';

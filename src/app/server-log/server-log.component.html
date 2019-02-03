@@ -3,3 +3,7 @@
 <ul>
   <textarea readonly name="logArea" class="output" [(ngModel)]="serverLog" type="text"></textarea>
 </ul>
+Turn Server: 
+<button mat-raised-button class="turn" [ngStyle]="{'background-color': getTurnButtonColour()}" (click)="toggleTurn()">
+  {{ this.getTurnText() }}
+</button>

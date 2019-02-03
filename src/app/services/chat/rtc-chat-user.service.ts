@@ -15,10 +15,10 @@ export class RtcChatUserService {
 
   eventCallback$ = messagesOut.asObservable(); // Stream
   private roomId: string;
-  private adminRtc: RTCPeerConnection;
+  public adminRtc: RTCPeerConnection;
   private dataChannel: RTCDataChannel;
-  private localDesc;
-
+  private storedCandidates: Array<RTCIceCandidate>;
+  private test:boolean = false;
 
   constructor(
     private chatSocketService: ChatSocketService,
@@ -30,6 +30,8 @@ export class RtcChatUserService {
 
   //functions to run to initiate service.
   initiateService() {
+    this.storedCandidates = [];
+    this.roomId = '';
     //subscribe to chat socket. 
     try {
       this.subscribe();
@@ -46,19 +48,30 @@ export class RtcChatUserService {
     this.adminRtc = this.rtcService.setupConnection();
     //setup ice handling.
     this.adminRtc.onicecandidate = event => {
-      if (event.candidate && this.roomId) {
-        this.socketMessage({
-          type: "candidate",
-          candidate: event.candidate,
-          roomId: this.roomId
-        });
-      }
+      if (event.candidate) {
+        //if id exists, send the candidate.
+        if (this.roomId.length === 0)
+          this.storedCandidates.push(event.candidate);
+        //if it does not, store candidate.
+        else {
+          this.sendCandidate(event.candidate);
+        }
+      };
     }
+  }
+
+
+  sendCandidate(candidate) {
+    this.socketMessage({
+      type: "candidate",
+      candidate: candidate,
+      roomId: this.roomId
+    });
   }
 
   //Make an offer to admin.
   async sendOffer() {
-    this.localDesc =
+    this.adminRtc.setLocalDescription(
       await this.adminRtc.createOffer({
         offerToReceiveAudio: true
       })
@@ -74,13 +87,21 @@ export class RtcChatUserService {
           });
           return event;
         })
+    )
   }
 
   //when an answer is recieved. Also assigns an id from administrator.
   private onAnswer(answer, assignedId) {
-    this.adminRtc.setLocalDescription(this.localDesc);
-    this.adminRtc.setRemoteDescription(new RTCSessionDescription(answer))
     this.roomId = assignedId;
+    //send all stored candidates.
+    this.storedCandidates.forEach(value => {
+      this.socketMessage({
+        type: "candidate",
+        candidate: value,
+        roomId: this.roomId
+      })
+    })
+    this.adminRtc.setRemoteDescription(new RTCSessionDescription(answer))
   }
 
   //determines what happens when candidates are recieved.
@@ -89,7 +110,7 @@ export class RtcChatUserService {
   }
 
   //sends a message to websocket
-  private socketMessage(message) {
+  socketMessage(message) {
     //connect room id to message. As roomId and admin's username is the same, roomid will identify admin.
     message.name = this.settingsService.getRoomId();
     this.chatSocketService.sendMessage(message);
@@ -98,30 +119,37 @@ export class RtcChatUserService {
   //subscribes to the messages value in chatService
   subscribe() {
     this.chatSocketService.messages.subscribe(msg => {
-      var message = JSON.parse(msg);
-      //determine what to do with the replying message.
-      switch (message.type) {
-        case "answer":
-          this.onAnswer(message.answer, message.roomId);
-          break;
-        case "candidate":
-          this.onCandidate(message.candidate);
-          break;
-        case "connect-failed":
-          alert("Connection failed. Room not found.")
-          this.router.navigateByUrl('chat');
-          break;
-        default:
-          console.log("Message not recognised.");
+      if (this.settingsService.getSubscribed("user_chat")) {
+        var message = JSON.parse(msg);
+        //determine what to do with the replying message.
+        switch (message.type) {
+          case "answer":
+              this.onAnswer(message.answer, message.roomId);
+            break;
+          case "candidate":
+            this.onCandidate(message.candidate);
+            break;
+          case "connect-failed":
+            alert("Connection failed. Room not found.")
+            this.router.navigateByUrl('chat');
+            break;
+          default:
+            console.log("Message not recognised.");
+        }
       }
     });
   }
 
+  private checkSignalingState(state: string):boolean {
+    if (this.adminRtc.signalingState === state) {
+      return true
+    }
+    return false;
+  }
+
   //creating data channel 
   openDataChannel() {
-
     this.dataChannel = this.adminRtc.createDataChannel("myDataChannel", this.settingsService.getDataChannelOptions());
-
     this.adminRtc.ondatachannel = event => {
       //once the channel is open disconnect form socket.
       event.channel.onopen = event => {

@@ -35,6 +35,7 @@ export class RoomSelectComponent implements OnInit {
     this.chatAdminService.disconnectRtc();
     //attempt to connect to socket.
     this.connect();
+    this.settingsService.setSubscribed("main_menu");
   }
 
   //QUICK CREATE ROOM FOR TESTING

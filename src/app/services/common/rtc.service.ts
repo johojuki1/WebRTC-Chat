@@ -12,22 +12,21 @@ export class RtcService {
   ) { }
 
   public setupConnection(): RTCPeerConnection {
+    var servers = [
+      {
+        urls: this.settingsService.getIceServerURL()
+      },
+    ]
+    if (this.settingsService.getTurn()) {
+      servers.push(this.settingsService.getTurnServerURL());
+    }
     var configuration = {
-      "iceServers": [
-        {
-          urls: this.settingsService.getIceServerURL()
-        },
-        {
-          urls: "turn:numb.viagenie.ca",
-          username: "johogames@hotmail.com",
-          credential: "Control1"
-  }
-      ],
-  "optional": [{ RtpDataChannels: true }]
-};
+      "iceServers": servers,
+      "optional": [{ RtpDataChannels: true }]
+    };
 
-var myConnection = new RTCPeerConnection(configuration);
-console.log("RTCPeerConnection object was created");
-return myConnection;
+    var myConnection = new RTCPeerConnection(configuration);
+    console.log("RTCPeerConnection object was created");
+    return myConnection;
   };
 }

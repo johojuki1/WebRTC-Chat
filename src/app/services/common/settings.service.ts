@@ -1,13 +1,18 @@
 import { Injectable } from '@angular/core';
 
 //stores all settings of the program.
-const WEBSOCKET_SERVER_URL = 'ws://58.173.98.139:9090';
+const WEBSOCKET_SERVER_URL = 'wss://jonathan-ho.com:9090';
 const ICE_SERVER_URL = 'stun:stun.1.google.com:19302'
+const TURN_SERVER_URL = {
+  urls: "turn:numb.viagenie.ca",
+  username: "johogames@hotmail.com",
+  credential: "Control1"
+}
 
 const DATA_CHANNEL_OPTIONS = {
   ordered: false, // do not guarantee order
   maxPacketLifeTime: 3000, // in milliseconds
-  reliable:true
+  reliable: true
 };
 
 @Injectable({
@@ -26,10 +31,15 @@ export class SettingsService {
   private roomId: string;
   //Name of admin of room.
   private adminName: string;
+  //describes which page the user is currently viewing/
+  private socketSubscribed: string
+  //describes whether turn servers should be used.
+  private turn: boolean
 
   constructor() {
     this.adminName = '';
-   }
+    this.turn = true;
+  }
 
   //get url of socket.
   public getChatWebsocketURL() {
@@ -40,13 +50,17 @@ export class SettingsService {
   public getIceServerURL() {
     return ICE_SERVER_URL;
   }
+  //get turn server
+  public getTurnServerURL() {
+    return TURN_SERVER_URL;
+  }
 
-  public getDataChannelOptions(){
+  public getDataChannelOptions() {
     return DATA_CHANNEL_OPTIONS;
   }
 
   //functions for controlling stored variables
-  public reset (){
+  public reset() {
   }
 
   //Variable getters.
@@ -70,6 +84,18 @@ export class SettingsService {
     return this.adminName;
   }
 
+  public getSubscribed(string): boolean {
+    if (string === this.socketSubscribed) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public getTurn(): boolean {
+    return this.turn;
+  }
+
   //Variable Setters.
   public setRoomName(value: string) {
     this.roomName = value;
@@ -83,11 +109,19 @@ export class SettingsService {
     this.roomId = value;
   }
 
-  public setUserId(value:string) {
+  public setUserId(value: string) {
     this.userId = value;
   }
 
-  public setAdminName(value:string) {
+  public setAdminName(value: string) {
     this.adminName = value;
+  }
+
+  public setSubscribed(value: string) {
+    this.socketSubscribed = value;
+  }
+
+  public setTurn(bool: boolean) {
+    this.turn = bool;
   }
 }

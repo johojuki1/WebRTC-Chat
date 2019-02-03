@@ -39,3 +39,11 @@ button.send {
     max-width: 110px;
     max-height: 70px;
 }
+
+button.turn {
+    display: inline-block; 
+    vertical-align:top; 
+    margin-left: 30px; 
+    margin-top: 25px;
+    color: white;
+}

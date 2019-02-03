@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { RtcChatUserService } from '../services/chat/rtc-chat-user.service'
 import { SettingsService } from '../services/common/settings.service'
 import { Message } from '../objects/message'
@@ -10,7 +10,7 @@ import { Message } from '../objects/message'
   styleUrls: ['./user-chat.component.scss']
 })
 
-export class UserChatComponent implements OnInit {
+export class UserChatComponent implements OnInit, OnDestroy {
 
   inputBoxValue: string;
   private messageList: Array<Message> = [];
@@ -27,6 +27,10 @@ export class UserChatComponent implements OnInit {
     this.inputBoxValue = '';
     this.rtcChatUserService.initiateService();
     this.subscribeRTCMessage();
+    this.settingsService.setSubscribed("user_chat");
+  }
+
+  ngOnDestroy() {
   }
 
   private subscribeRTCMessage() {
@@ -44,6 +48,7 @@ export class UserChatComponent implements OnInit {
         //cast message into message object.
         var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
         this.messageList.push(chatMessage);
+        chatMessage.message = chatMessage.message.replace("\n", "");
         this.textAreaChat = this.createChatString(chatMessage) + this.textAreaChat;
         break;
       case "general-message":
@@ -77,7 +82,9 @@ export class UserChatComponent implements OnInit {
   }
 
   public sendMessage() {
-    if (this.inputBoxValue.length > 0) {
+    if (this.inputBoxValue.length > 0 && this.inputBoxValue!=="\n") {
+      //remove all newline symbols incase any were missed.
+      this.inputBoxValue = this.inputBoxValue.replace("\n", "");
       this.rtcChatUserService.sendRtcMessage(
         {
           type: 'chat-request',

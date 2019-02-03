@@ -42,17 +42,19 @@ export class RtcChatAdminService {
   //subscribes to the messages value in chatService
   subscribeToSocket() {
     this.chatSocketService.messages.subscribe(msg => {
-      var message = JSON.parse(msg)
-      //determine what to do with the replying message.
-      switch (message.type) {
-        case "offer":
-          this.onOffer(message.offer, message.userId.id, message.userId.name);
-          break;
-        case "candidate":
-          this.onCandidate(message.candidate, message.roomId);
-          break;
-        default:
-          console.log("Message not recognised. (Chat admin service) " + message.type);
+      if (this.settingsService.getSubscribed("admin_chat")) {
+        var message = JSON.parse(msg)
+        //determine what to do with the replying message.
+        switch (message.type) {
+          case "offer":
+            this.onOffer(message.offer, message.userId.id, message.userId.name);
+            break;
+          case "candidate":
+            this.onCandidate(message.candidate, message.roomId);
+            break;
+          default:
+            console.log("Message not recognised. (Chat admin service) " + message.type);
+        }
       }
     });
   }
@@ -65,8 +67,6 @@ export class RtcChatAdminService {
     newUser = this.initiateUser(socketId, name);
     newUser = this.setupDataChannel(newUser);
     newUser.rtc.setRemoteDescription(new RTCSessionDescription(offer));
-    var message;
-
     newUser.rtc.setLocalDescription(
       //wait for answer to be created, then send answer.
       await newUser.rtc.createAnswer()
@@ -79,6 +79,7 @@ export class RtcChatAdminService {
           this.socketMessage(message, socketId);
           return event;
         }))
+    var message;
     //add to list of users
     users[newUser.roomId] = newUser;
     console.log("Admin - Added user with id: " + newUser.roomId);

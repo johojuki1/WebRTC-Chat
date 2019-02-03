@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { RtcChatAdminService } from '../services/chat/rtc-chat-admin.service';
 import { SettingsService } from '../services/common/settings.service'
 import { ChatSocketService } from '../services/chat/chatSocket.service'
@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./admin-chat.component.scss']
 })
 
-export class AdminChatComponent implements OnInit {
+export class AdminChatComponent implements OnInit, OnDestroy {
 
   private messageList: Array<Message> = [];
   inputBoxValue: string;
@@ -28,7 +28,6 @@ export class AdminChatComponent implements OnInit {
 
   ngOnInit() {
     //check if admin name is set, if it is it means user is in wrong place. Redirect.
-
     if (this.settingsService.getAdminName().length != 0) {
       this.router.navigateByUrl('chat');
     } else {
@@ -36,6 +35,10 @@ export class AdminChatComponent implements OnInit {
       this.subscribeRTCMessage();
       this.subscribeSocketStatus();
     }
+    this.settingsService.setSubscribed("admin_chat");
+  }
+
+  ngOnDestroy() {
   }
 
   //subscribes to the messges recieved form webRTC connection.
@@ -72,9 +75,9 @@ export class AdminChatComponent implements OnInit {
       case "add-chat":
         //cast message into message object.
         var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
+        this.messageList.push(chatMessage);
         //remove all newline symbols incase any were missed.
         chatMessage.message = chatMessage.message.replace("\n", "");
-        this.messageList.push(chatMessage);
         this.textAreaChat = this.createChatString(chatMessage) + this.textAreaChat;
         break;
       //informational messages sent yb admin.
@@ -87,7 +90,7 @@ export class AdminChatComponent implements OnInit {
       //new user has connected, message history is requested.
       case "refresh-chatbox":
         this.rtcChatAdminService.sendAllMessages(message.id, this.messageList);
-      break;
+        break;
       default:
         console.log("RTC Message not recognised.");
     }
@@ -161,7 +164,7 @@ export class AdminChatComponent implements OnInit {
     }
   }
 
-  showState(){
+  showState() {
     this.rtcChatAdminService.showState();
   }
 }
