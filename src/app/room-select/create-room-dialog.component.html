@@ -5,9 +5,35 @@
 </div>
 <div style="padding: 0px">
     <p>Your Name: </p>
-    <input  style="width:90%" matInput #name>
+    <input style="width:90%" matInput #name>
 </div>
-<div style="padding: 12px"></div> 
+<div style="padding-top: 15px">
+        <mat-checkbox [(ngModel)]="manAuth" labelPosition="after">
+            <div style="font-family: 'Montserrat', sans-serif;
+            color: 'grey';
+            font-size: 1em;
+            font-weight: 300
+            ">
+                Manual Authentication
+            </div>
+        </mat-checkbox>
+    </div>
+<div style="padding-top: 15px">
+    <mat-checkbox [(ngModel)]="requiresPassword" labelPosition="after">
+        <div style="font-family: 'Montserrat', sans-serif;
+        color: 'grey';
+        font-size: 1em;
+        font-weight: 300
+        ">
+            Requires Password
+        </div>
+    </mat-checkbox>
+</div>
+<div style="padding: 0px" [hidden]="!requiresPassword">
+    <p>Password: </p>
+    <input style="width:90%" matInput #password>
+</div>
+<div style="padding: 12px"></div>
 <div mat-dialog-actions>
     <button mat-raised-button color="primary" (click)="onCreate(room.value, name.value)" cdkFocusInitial>Create</button>
     <button mat-raised-button color="primary" (click)="onCancel()">Cancel</button>

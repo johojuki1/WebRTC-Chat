@@ -2,14 +2,16 @@
 var WebSocketServer = require('ws').Server;
 
 //creating a websocket server at port 9090 
-var wss = new WebSocketServer({ port: 9096 });
+var wss = new WebSocketServer({ port: 9090 });
 //class declorations
 //declare room class
 class Room {
-    constructor(adminId, name, adminName) {
+    constructor(adminId, name, adminName, requiresPassword, manAuth) {
         this.adminId = adminId;
         this.name = name;
         this.adminName = adminName;
+        this.requiresPassword = requiresPassword;
+        this.manAuth = manAuth;
     }
 
     set adminId(value) {
@@ -34,6 +36,22 @@ class Room {
 
     get adminName() {
         return this._adminName;
+    }
+
+    set requiresPassword(value) {
+        this._requiresPassword = value;
+    }
+
+    get requiresPassword(){
+        return this._requiresPassword;
+    }
+
+    set manAuth(value) {
+        this._manAuth = value;
+    }
+
+    get manAuth() {
+        return this._manAuth;
     }
 }
 
@@ -139,7 +157,7 @@ wss.on('connection', function (connection) {
                     });
                 } else {
                     //create a room under the specifications within the message.
-                    rooms[connection.id] = new Room(connection.id, data.name, data.adminName);
+                    rooms[connection.id] = new Room(connection.id, data.name, data.adminName, data.requiresPassword, data.manAuth);
                     outputLog("New room created with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
                     //if room is successifully created, inform client.
                     sendTo(connection, {

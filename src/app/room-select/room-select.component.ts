@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ChatSocketService } from '../services/chat/chatSocket.service';
 import { SettingsService } from '../services/common/settings.service'
 import { Room } from '../objects/room'
@@ -93,7 +93,7 @@ export class RoomSelectComponent implements OnInit {
           roomList = [];
           Object.keys(message.message).forEach(function (key) {
             let tmpRoom = new Room();
-            tmpRoom.init(message.message[key]._adminId, message.message[key]._adminName, message.message[key]._name);
+            tmpRoom.init(message.message[key]._adminId, message.message[key]._adminName, message.message[key]._name, message.message[key]._requiresPassword, message.message[key]._manAuth);
             roomList.push(tmpRoom);
           });
           this.refreshRoomList(roomList);
@@ -155,17 +155,28 @@ export class RoomSelectComponent implements OnInit {
 
 export class CreateRoomDialog {
 
+  private requiresPassword = false;
+  private manAuth = false;
+
   constructor(
     public dialogRef: MatDialogRef<CreateRoomDialog>,
     private settingsService: SettingsService,
-    private chatSocketService: ChatSocketService, ) { }
+    private chatSocketService: ChatSocketService,
+  ) { }
 
   //response if the user decides to press create room button.
-  onCreate(room: string, name: string): void {
+  onCreate(room: string, name: string, password: string): void {
     //make sure room name and administrator name is more than 3 characters.
     if (room.length > 2 && name.length > 2) {
+      //set room settings.
       this.settingsService.setRoomName(room);
       this.settingsService.setUserName(name);
+      this.settingsService.setPasswordRequired(this.requiresPassword);
+      this.settingsService.setManAuth(this.manAuth);
+      //if password is required, save password.
+      if (this.requiresPassword) {
+        this.settingsService.setPassword(password);
+      }
       //Clear administrator name;
       this.settingsService.setAdminName('');
       //send command to create room.
@@ -174,11 +185,13 @@ export class CreateRoomDialog {
           type: 'create-room',
           name: room,
           adminName: name,
+          requiresPassword: this.requiresPassword,
+          manAuth: this.manAuth,
         }
       )
       this.dialogRef.close();
     } else {
-      alert("Room name and username must be longer than 3 characters.");
+      alert("Room name, username and password must be longer than 3 characters.");
     }
   }
 

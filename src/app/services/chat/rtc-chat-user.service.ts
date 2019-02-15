@@ -18,7 +18,6 @@ export class RtcChatUserService {
   public adminRtc: RTCPeerConnection;
   private dataChannel: RTCDataChannel;
   private storedCandidates: Array<RTCIceCandidate>;
-  private test: boolean = false;
 
   constructor(
     private chatSocketService: ChatSocketService,

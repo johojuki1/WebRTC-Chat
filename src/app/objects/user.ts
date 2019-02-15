@@ -9,4 +9,6 @@ export class User {
     datachannel: RTCDataChannel;
     //displayname of user
     username: string;
+    //stores if correct password has been given
+    passwordGiven: boolean;
 }

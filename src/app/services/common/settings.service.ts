@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 
 //stores all settings of the program.
-const WEBSOCKET_SERVER_URL = 'wss://jonathan-ho.com:9090';
+//const WEBSOCKET_SERVER_URL = 'wss://jonathan-ho.com:9090';
+const WEBSOCKET_SERVER_URL = 'ws://localhost:9090';
 const ICE_SERVER_URL = 'stun:stun.1.google.com:19302'
 const TURN_SERVER_URL = {
   urls: "turn:numb.viagenie.ca",
@@ -32,13 +33,20 @@ export class SettingsService {
   //Name of admin of room.
   private adminName: string;
   //describes which page the user is currently viewing/
-  private socketSubscribed: string
+  private socketSubscribed: string;
   //describes whether turn servers should be used.
-  private turn: boolean
+  private turn: boolean;
+  //describes whether room requires password.
+  private passwordRequired: boolean;
+  //value of password.
+  private password: string;
+  //describes whether room requires manual authentication.
+  private manAuth: boolean;
 
   constructor() {
     this.adminName = '';
     this.turn = true;
+    this.passwordRequired = false;
   }
 
   //get url of socket.
@@ -96,6 +104,18 @@ export class SettingsService {
     return this.turn;
   }
 
+  public getPasswordRequired(): boolean {
+    return this.passwordRequired;
+  }
+
+  public getPassword(): string {
+    return this.password;
+  }
+
+  public getManAuth(): boolean {
+    return this.manAuth;
+  }
+
   //Variable Setters.
   public setRoomName(value: string) {
     this.roomName = value;
@@ -123,5 +143,17 @@ export class SettingsService {
 
   public setTurn(bool: boolean) {
     this.turn = bool;
+  }
+
+  public setPasswordRequired(bool: boolean) {
+    this.passwordRequired = bool;
+  }
+
+  public setPassword(value: string) {
+    this.password = value;
+  }
+
+  public setManAuth(bool: boolean) {
+    this.manAuth = bool;
   }
 }
