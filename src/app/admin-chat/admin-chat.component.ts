@@ -60,6 +60,8 @@ export class AdminChatComponent implements OnInit, OnDestroy {
           type: 'create-room',
           name: this.settingsService.getRoomName(),
           adminName: this.settingsService.getUserName(),
+          requiresPassword: this.settingsService.getPasswordRequired(),
+          manAuth: this.settingsService.getManAuth(),
         }
         this.chatSocketService.sendMessage(message);
       }

@@ -9,10 +9,17 @@
 <ul>
   <li *ngFor="let room of rooms" style="display:block;">
     <div style="display: inline-block; vertical-align:top; top:50%; position: relative; transform: translateY(45%); ">
-      <button mat-raised-button color="primary" (click)="openRoomEntryDialog(room.adminId, room.roomName, room.adminName)" style="display: inline-block; vertical-align:middle;">Join</button>
+      <button mat-raised-button color="primary" (click)="openRoomEntryDialog(rooms.indexOf(room))"
+        style="display: inline-block; vertical-align:middle;">Join</button>
     </div>
     <div style="display:inline-block; margin-left: 35px;">
-      <a routerLink="/chat" (click)="openRoomEntryDialog(room.adminId, room.roomName, room.adminName)">{{ room.roomName }}</a>
+      <a routerLink="/chat" style="vertical-align:middle" (click)="openRoomEntryDialog(rooms.indexOf(room))">{{ room.roomName
+        }}</a>
+      <div style="display: inline;">
+        <i class="material-icons" style="padding-left: 10px; color: grey; vertical-align:middle">{{ this.getPasswordIcon(room.password) }}</i>
+        <i style="padding-left: 7px; color: grey; font-size: 0.9em; font-weight: bold; font-style:normal; vertical-align:middle">{{
+          this.getManAuth(room.manual) }}</i>
+      </div>
       <ul>
         <li>Creator: {{ room.adminName }}</li>
       </ul>

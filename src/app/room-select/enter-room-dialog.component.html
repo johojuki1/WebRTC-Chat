@@ -3,8 +3,12 @@
     <p>Your Name: </p>
     <input style="width:90%" matInput #name>
 </div>
+<div style="padding: 0px" [hidden]="!getPasswordRequired()">
+        <p>Password: </p>
+        <input style="width:90%" matInput #password>
+    </div>
 <div style="padding: 12px"></div> 
 <div mat-dialog-actions>
-    <button mat-raised-button color="primary" (click)="onEnter(name.value)" cdkFocusInitial>Join</button>
+    <button mat-raised-button color="primary" (click)="onEnter(name.value, password.value)" cdkFocusInitial>Join</button>
     <button mat-raised-button color="primary" (click)="onCancel()">Cancel</button>
 </div>

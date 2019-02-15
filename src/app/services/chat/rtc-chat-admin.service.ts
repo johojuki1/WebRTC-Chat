@@ -9,8 +9,11 @@ import { User } from '../../objects/user'
 //Stores values that is retrived by subscribed functions.
 var messagesOut: Subject<string> = new Subject<string>();
 
-//Stores users usd by software. 
+//Stores users used by software. These users are authenticated
 var users: Array<User> = [];
+
+//Stores users waiting to be authenticated
+var waitingUsers: Array<User> = [];
 
 @Injectable({
   providedIn: 'root'
@@ -67,6 +70,7 @@ export class RtcChatAdminService {
     newUser = this.initiateUser(socketId, name);
     newUser = this.setupDataChannel(newUser);
     newUser.rtc.setRemoteDescription(new RTCSessionDescription(offer));
+    var message;
     newUser.rtc.setLocalDescription(
       //wait for answer to be created, then send answer.
       await newUser.rtc.createAnswer()
@@ -79,9 +83,8 @@ export class RtcChatAdminService {
           this.socketMessage(message, socketId);
           return event;
         }))
-    var message;
     //add to list of users
-    users[newUser.roomId] = newUser;
+    waitingUsers[newUser.roomId] = newUser;
     console.log("Admin - Added user with id: " + newUser.roomId);
     //send answer.
   }
@@ -91,7 +94,7 @@ export class RtcChatAdminService {
     var newId;
     do {
       newId = Math.floor(Math.random() * 90000) + 10000;
-    } while (users[newId])
+    } while (users[newId] || waitingUsers[newId])
     return <string>newId;
   }
 
@@ -154,17 +157,10 @@ export class RtcChatAdminService {
   setupDataChannel(user: User): User {
     //create datachannel
     user.datachannel = user.rtc.createDataChannel(user.roomId, this.settingsService.getDataChannelOptions());
-    
+
     //when datachannel opens, broadcast to all users.
     user.datachannel.onopen = event => {
-      this.broadcastGeneralMessage(user.username + " has connected to the room.")
-      //create request to send all old messages to new user.
-      var sentMessage =
-      {
-        type: 'refresh-chatbox',
-        id: user.roomId,
-      }
-      messagesOut.next(JSON.stringify(sentMessage));
+      this.dataChannelOnOpen(user);
     }
 
     user.rtc.ondatachannel = event => {
@@ -173,6 +169,43 @@ export class RtcChatAdminService {
       }
     }
     return user;
+  }
+
+  //determines what happens when datachannel first opens.
+  dataChannelOnOpen(user: User) {
+    //if the room is not manually authenticated and does not have password, authenticate user.
+    if (!this.settingsService.getManAuth() && !this.settingsService.getPasswordRequired()) {
+      this.authenticateUser(user.roomId);
+    }
+  }
+
+  //Authenticate user
+  private authenticateUser(userId: string) {
+    //get user from waiting list.
+    var user = waitingUsers[userId];
+    if (user == null) {
+      console.log("Error during authentication: cannot find user.");
+      return;
+    }
+    //delete user from waiting list.
+    try {
+      waitingUsers.splice(waitingUsers.indexOf(waitingUsers[userId]), 1);
+    } catch (err) {
+      console.log("Error during authentication: Failed to delete user form waiting list.");
+      return;
+    }
+    //add users to authenticated list.
+    users[userId] = user;
+
+    //create request to send all old messages to new user.
+    var sentMessage =
+    {
+      type: 'refresh-chatbox',
+      id: user.roomId,
+    }
+    messagesOut.next(JSON.stringify(sentMessage));
+    //broadcast news a new user has been authenticated.
+    this.broadcastGeneralMessage(user.username + " has connected to the room.")
   }
 
   //used by component to send history of messages to user.

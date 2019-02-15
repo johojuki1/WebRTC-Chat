@@ -135,16 +135,39 @@ export class RoomSelectComponent implements OnInit {
   }
 
   //Functions for the room entry dialog.
-  openRoomEntryDialog(id: string, name: string, adminName: string): void {
-    //store room information in settings.
-    this.settingsService.setRoomId(id);
-    this.settingsService.setRoomName(name);
-    this.settingsService.setAdminName(adminName)
-    //open room entry dialog.
-    this.dialog.open(EnterRoomDialog, {
-      width: '250px',
-      disableClose: true,
-    });
+  openRoomEntryDialog(id: string): void {
+    //find the room then set relevant variables.
+    if (this.rooms[id]) {
+      //store room information in settings.
+      this.settingsService.setRoomId(this.rooms[id].adminId);
+      this.settingsService.setRoomName(this.rooms[id].roomName);
+      this.settingsService.setAdminName(this.rooms[id].adminName);
+      this.settingsService.setManAuth(this.rooms[id].manual);
+      this.settingsService.setPasswordRequired(this.rooms[id].password);
+      //open room entry dialog.
+      this.dialog.open(EnterRoomDialog, {
+        width: '250px',
+        disableClose: true,
+      });
+    }
+  }
+
+  //returns the correct icon based on password requirements
+  getPasswordIcon(passRequired: boolean): string {
+    if (passRequired) {
+      return "lock"
+    } else {
+      return "lock_open"
+    }
+  }
+
+  //returns correct string based on manual authentication requirements
+  getManAuth(manAuth: boolean): string {
+    if (manAuth) {
+      return "MANUAL"
+    } else {
+      return "AUTO"
+    }
   }
 }
 
@@ -218,9 +241,18 @@ export class EnterRoomDialog {
     private router: Router,
   ) { }
 
+  //return if password is required for the room or not.
+  getPasswordRequired(): boolean {
+    return this.settingsService.getPasswordRequired();
+  }
+
   //response if the user decides to press create room button.
-  onEnter(name: string): void {
+  onEnter(name: string, password: string): void {
     this.settingsService.setUserName(name);
+    //check if password is required. If so store user's password.
+    if (this.settingsService.getPasswordRequired()) {
+      this.settingsService.setPassword(password);
+    }
     this.dialogRef.close();
     this.router.navigateByUrl('chat/user', { skipLocationChange: true });
   }
@@ -228,6 +260,8 @@ export class EnterRoomDialog {
   onCancel(): void {
     this.settingsService.setRoomId('');
     this.settingsService.setUserName('');
+    this.settingsService.setManAuth(false);
+    this.settingsService.setPasswordRequired(false);
     this.dialogRef.close();
   }
 }
