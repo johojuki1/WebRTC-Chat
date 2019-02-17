@@ -189,6 +189,12 @@ export class RtcChatUserService {
   //disconnects the WEBRtc connection.
   public disconnectRtc() {
     try {
+      //inform server to close the rtc connection.
+      this.sendRtcMessage(
+        {
+          type: 'connection-close',
+        })
+      //close the connection.
       this.dataChannel.close();
       this.adminRtc.close();
       this.dataChannel = new RTCDataChannel();

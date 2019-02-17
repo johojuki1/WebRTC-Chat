@@ -31,6 +31,7 @@ export class UserChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.rtcChatUserService.disconnectRtc();
   }
 
   private subscribeRTCMessage() {
@@ -68,6 +69,11 @@ export class UserChatComponent implements OnInit, OnDestroy {
             this.textAreaChat = this.createChatString(message) + this.textAreaChat;
           }
         })
+        break;
+      case "password-fail":
+        var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
+        this.textAreaChat = '->   ' + chatMessage.message + '\n' + this.textAreaChat;
+        this.rtcChatUserService.disconnectRtc();
       default:
         console.log("RTC Message not recognised.");
     }
@@ -82,7 +88,7 @@ export class UserChatComponent implements OnInit, OnDestroy {
   }
 
   public sendMessage() {
-    if (this.inputBoxValue.length > 0 && this.inputBoxValue!=="\n") {
+    if (this.inputBoxValue.length > 0 && this.inputBoxValue !== "\n") {
       //remove all newline symbols incase any were missed.
       this.inputBoxValue = this.inputBoxValue.replace("\n", "");
       this.rtcChatUserService.sendRtcMessage(

@@ -42,7 +42,7 @@ class Room {
         this._requiresPassword = value;
     }
 
-    get requiresPassword(){
+    get requiresPassword() {
         return this._requiresPassword;
     }
 
@@ -190,7 +190,7 @@ wss.on('connection', function (connection) {
                 logSocket = connection;
                 //remove the user.
                 closeConnection(connection);
-            break;
+                break;
             default:
                 sendTo(connection, {
                     type: "error",
@@ -202,7 +202,7 @@ wss.on('connection', function (connection) {
 
     });
 
-    //if close command is requeisted, close the connection.
+    //if close command is requested, close the connection.
     connection.on("close", function () {
         closeConnection(connection);
     });
@@ -216,13 +216,21 @@ wss.on('connection', function (connection) {
 //closes connection, removes registered user connected, removes registered rooms connected. 
 function closeConnection(connection) {
     if (connection.id) {
-        if (users[connection.id]) {
-            delete users[connection.id];
-            outputLog("User has been removed: " + connection.id)
+        try {
+            if (users[connection.id]) {
+                delete users[connection.id];
+                outputLog("User has been removed: " + connection.id)
+            }
+        } catch (err) {
+            outputLog("Error while removing user:" + connection.id)
         }
-        if (rooms[connection.id]) {
-            outputLog("Room deleted with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
-            delete rooms[connection.id];
+        try {
+            if (rooms[connection.id]) {
+                outputLog("Room deleted with id: " + rooms[connection.id].adminId + " and name: " + rooms[connection.id].name);
+                delete rooms[connection.id];
+            }
+        } catch (err) {
+            outputLog("Error while removing room:" + connection.id)
         }
     }
 }
@@ -232,7 +240,7 @@ function outputLog(message) {
     //send through to log socket.
     try {
         logSocket.send(message);
-    } catch(err) {};
+    } catch (err) { };
 }
 
 function assignId() {

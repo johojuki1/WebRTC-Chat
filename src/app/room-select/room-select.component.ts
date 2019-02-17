@@ -83,41 +83,42 @@ export class RoomSelectComponent implements OnInit {
   private subscribe() {
     this.chatSocketService.messages.subscribe(msg => {
       var message = JSON.parse(msg)
+      //check if user is looking at the correct page.
+      if (this.settingsService.getSubscribed("main_menu")) {
+        //determine what to do with the replying message.
+        switch (message.type) {
+          //A new list of available rooms is sent from server.
+          case "room-list":
+            var roomList: Array<Room>;
+            roomList = [];
+            Object.keys(message.message).forEach(function (key) {
+              let tmpRoom = new Room();
+              tmpRoom.init(message.message[key]._adminId, message.message[key]._adminName, message.message[key]._name, message.message[key]._requiresPassword, message.message[key]._manAuth);
+              roomList.push(tmpRoom);
+            });
+            this.refreshRoomList(roomList);
+            break;
 
-      //determine what to do with the replying message.
-      switch (message.type) {
+          //server replies connection is successiful
+          case "connection":
+            if (message.success) {
+              this.settingsService.setUserId(message.id);
+              this.requestRooms();
+            }
+            break;
 
-        //A new list of available rooms is sent from server.
-        case "room-list":
-          var roomList: Array<Room>;
-          roomList = [];
-          Object.keys(message.message).forEach(function (key) {
-            let tmpRoom = new Room();
-            tmpRoom.init(message.message[key]._adminId, message.message[key]._adminName, message.message[key]._name, message.message[key]._requiresPassword, message.message[key]._manAuth);
-            roomList.push(tmpRoom);
-          });
-          this.refreshRoomList(roomList);
-          break;
+          //server replies if room creation is successiful.
+          case "create-room":
+            if (message.success) {
+              //Navigate to administrator chat room.
+              this.router.navigateByUrl('chat/admin', { skipLocationChange: true });
+            }
+            break;
 
-        //server replies connection is successiful
-        case "connection":
-          if (message.success) {
-            this.settingsService.setUserId(message.id);
-            this.requestRooms();
-          }
-          break;
-
-        //server replies if room creation is successiful.
-        case "create-room":
-          if (message.success) {
-            //Navigate to administrator chat room.
-            this.router.navigateByUrl('chat/admin', { skipLocationChange: true });
-          }
-          break;
-
-        default:
-          console.log("Message not recognised.");
-      }
+          default:
+            console.log("Message not recognised.");
+        }
+      };
     });
   }
 

@@ -44,7 +44,6 @@ export class AdminChatComponent implements OnInit, OnDestroy {
   //subscribes to the messges recieved form webRTC connection.
   private subscribeRTCMessage() {
     this.rtcChatAdminService.eventCallback$.subscribe(data => {
-      console.log("Message Recieved from User: " + data);
       this.manageMessages(data);
     })
   }

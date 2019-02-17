@@ -137,7 +137,10 @@ export class RtcChatAdminService {
     //detects if user has disconnected and deletes user.
     newUser.rtc.oniceconnectionstatechange = event => {
       if (newUser.rtc.iceConnectionState == 'disconnected') {
-        this.broadcastGeneralMessage(newUser.username + " has left the room.");
+        //check if user is in authenticated users.
+        if (users[newUser.roomId]) {
+          this.broadcastGeneralMessage(newUser.username + " has disconnected from the room.");
+        }
         this.removeUser(newUser.roomId);
       }
     }
@@ -198,7 +201,7 @@ export class RtcChatAdminService {
     var user = waitingUsers[userId];
     //add users to authenticated list.
     users[userId] = user;
-    
+
     if (user == null) {
       console.log("Error during authentication: cannot find user.");
       return;
@@ -274,7 +277,15 @@ export class RtcChatAdminService {
         break;
       //user has sent password to admin for authentication.
       case "password":
-        this.managePassword(data.password, roomId)
+        this.managePassword(data.password, roomId);
+        break;
+      //clase connection.
+      case "connection-close":
+        if (users[roomId]) {
+          this.broadcastGeneralMessage(users[roomId].username + " has left the room.");
+        }
+        this.removeUser(roomId);
+        break;
       default:
         console.log("RTC Message not recognised.");
     }
@@ -288,12 +299,19 @@ export class RtcChatAdminService {
       if (this.settingsService.getPassword() == password) {
         waitingUsers[roomId].passwordGiven = true;
         //authenticate only if manual authentication is inactive.
-        if(!this.settingsService.getManAuth()) {
+        if (!this.settingsService.getManAuth()) {
           this.authenticateUser(roomId);
         }
       } else {
         //if password given is incorrect.
-        this.sendGeneralMessage('Password incorrect. Disconnected from room.',waitingUsers[roomId]);
+        var sentMessage =
+        {
+          type: 'password-fail',
+          message: {
+            message: "Password incorrect. Disconnecting from room.",
+          },
+        }
+        waitingUsers[roomId].datachannel.send(JSON.stringify(sentMessage));
         this.removeUser(roomId);
       }
     }
