@@ -146,11 +146,24 @@ export class RtcChatUserService {
       //once the channel is open disconnect form socket.
       event.channel.onopen = event => {
         this.chatSocketService.disconnect();
+        this.managePassword();
       };
       event.channel.onmessage = event => {
         messagesOut.next(event.data);
       };
     };
+  }
+
+  //checks if password is required and sends registered password.
+  private managePassword() {
+    //send password if required.
+    if (this.settingsService.getPasswordRequired) {
+      this.sendRtcMessage(
+        {
+          type: 'password',
+          password: this.settingsService.getPassword(),
+        })
+    }
   }
 
   //when a user clicks the send message button 

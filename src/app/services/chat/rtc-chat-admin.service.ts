@@ -145,12 +145,23 @@ export class RtcChatAdminService {
   }
 
   private removeUser(roomId) {
-    //close all socket connections.
-    users[roomId].rtc.close;
-    users[roomId].datachannel.close;
-    //delete user.
-    users.splice(users.indexOf(users[roomId]), 1);
-    console.log("Admin - User removed with id: " + roomId);
+    //first attempt to remove from users list.
+    if (users[roomId]) {
+      //close all socket connections.
+      users[roomId].rtc.close;
+      users[roomId].datachannel.close;
+      //delete user.
+      users.splice(users.indexOf(users[roomId]), 1);
+      console.log("Admin - Authenticated user removed with id: " + roomId);
+    }
+    if (waitingUsers[roomId]) {
+      //close all socket connections.
+      waitingUsers[roomId].rtc.close;
+      waitingUsers[roomId].datachannel.close;
+      //delete user.
+      waitingUsers.splice(waitingUsers.indexOf(waitingUsers[roomId]), 1);
+      console.log("Admin - Unauthenticated user removed with id: " + roomId);
+    }
   }
 
   //Setup Data Channel.
@@ -176,6 +187,8 @@ export class RtcChatAdminService {
     //if the room is not manually authenticated and does not have password, authenticate user.
     if (!this.settingsService.getManAuth() && !this.settingsService.getPasswordRequired()) {
       this.authenticateUser(user.roomId);
+    } else {
+      this.sendGeneralMessage('Connected to room. Waiting for authentication.', user)
     }
   }
 
@@ -183,6 +196,9 @@ export class RtcChatAdminService {
   private authenticateUser(userId: string) {
     //get user from waiting list.
     var user = waitingUsers[userId];
+    //add users to authenticated list.
+    users[userId] = user;
+    
     if (user == null) {
       console.log("Error during authentication: cannot find user.");
       return;
@@ -194,8 +210,6 @@ export class RtcChatAdminService {
       console.log("Error during authentication: Failed to delete user form waiting list.");
       return;
     }
-    //add users to authenticated list.
-    users[userId] = user;
 
     //create request to send all old messages to new user.
     var sentMessage =
@@ -236,6 +250,20 @@ export class RtcChatAdminService {
     this.broadcast(JSON.parse(JSON.stringify(sentMessage)));
   }
 
+  //send information to one user.
+  private sendGeneralMessage(data: string, user: User) {
+    var sentMessage =
+    {
+      type: 'general-message',
+      message: {
+        name: 'admin',
+        message: data,
+        type: 'info'
+      },
+    }
+    user.datachannel.send(JSON.stringify(sentMessage));
+  }
+
   //manage contents of WebRTC message.
   private manageRtcMessage(data, roomId) {
     var data = JSON.parse(data)
@@ -244,8 +272,30 @@ export class RtcChatAdminService {
       case "chat-request":
         this.onMessageRequest(data.message, roomId);
         break;
+      //user has sent password to admin for authentication.
+      case "password":
+        this.managePassword(data.password, roomId)
       default:
         console.log("RTC Message not recognised.");
+    }
+  }
+
+  //manage password
+  private managePassword(password, roomId) {
+    //if user exists in waiting room.
+    if (waitingUsers[roomId]) {
+      //if password is the same.
+      if (this.settingsService.getPassword() == password) {
+        waitingUsers[roomId].passwordGiven = true;
+        //authenticate only if manual authentication is inactive.
+        if(!this.settingsService.getManAuth()) {
+          this.authenticateUser(roomId);
+        }
+      } else {
+        //if password given is incorrect.
+        this.sendGeneralMessage('Password incorrect. Disconnected from room.',waitingUsers[roomId]);
+        this.removeUser(roomId);
+      }
     }
   }
 
@@ -282,7 +332,6 @@ export class RtcChatAdminService {
       messagesOut.next(JSON.stringify(sentMessage));
       //send message to others.
       this.broadcast(JSON.parse(JSON.stringify(sentMessage)));
-
     }
   }
 
