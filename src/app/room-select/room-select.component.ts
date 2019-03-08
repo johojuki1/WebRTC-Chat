@@ -179,8 +179,8 @@ export class RoomSelectComponent implements OnInit {
 
 export class CreateRoomDialog {
 
-  private requiresPassword = false;
-  private manAuth = false;
+  public requiresPassword = false;
+  public manAuth = false;
 
   constructor(
     public dialogRef: MatDialogRef<CreateRoomDialog>,

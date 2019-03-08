@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
-import { MatButtonModule, MatDialogModule, MatInputModule, MatCheckboxModule } from '@angular/material';
+import { MatButtonModule, MatDialogModule, MatInputModule, MatCheckboxModule, MatTableModule } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 
@@ -41,6 +41,7 @@ import { ServerLogComponent } from './server-log/server-log.component';
     BrowserAnimationsModule,
     MatInputModule,
     MatCheckboxModule,
+    MatTableModule,
     FormsModule,
   ],
 

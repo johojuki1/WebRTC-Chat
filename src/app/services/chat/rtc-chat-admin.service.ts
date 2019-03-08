@@ -15,12 +15,16 @@ var users: Array<User> = [];
 //Stores users waiting to be authenticated
 var waitingUsers: Array<User> = [];
 
+//WaitingUsers on change variable.
+var waitingUsersOnChange: Subject<String> = new Subject<string>();
+
 @Injectable({
   providedIn: 'root'
 })
 export class RtcChatAdminService {
 
   eventCallback$ = messagesOut.asObservable(); // Stream
+  waitingUsersEventCallback$ = waitingUsersOnChange.asObservable(); // Stream
 
   constructor(
     private chatSocketService: ChatSocketService,
@@ -83,9 +87,6 @@ export class RtcChatAdminService {
           this.socketMessage(message, socketId);
           return event;
         }))
-    //add to list of users
-    waitingUsers[newUser.roomId] = newUser;
-    console.log("Admin - Added user with id: " + newUser.roomId);
     //send answer.
   }
 
@@ -154,7 +155,8 @@ export class RtcChatAdminService {
       users[roomId].rtc.close;
       users[roomId].datachannel.close;
       //delete user.
-      users.splice(users.indexOf(users[roomId]), 1);
+      users.splice(users.indexOf(users[roomId]), 1, undefined);
+      //users[roomId] = undefined;
       console.log("Admin - Authenticated user removed with id: " + roomId);
     }
     if (waitingUsers[roomId]) {
@@ -162,9 +164,11 @@ export class RtcChatAdminService {
       waitingUsers[roomId].rtc.close;
       waitingUsers[roomId].datachannel.close;
       //delete user.
-      waitingUsers.splice(waitingUsers.indexOf(waitingUsers[roomId]), 1);
+      waitingUsers.splice(waitingUsers.indexOf(waitingUsers[roomId]), 1, undefined);
+      //waitingUsers[roomId] = undefined;
       console.log("Admin - Unauthenticated user removed with id: " + roomId);
     }
+    waitingUsersOnChange.next("");
   }
 
   //Setup Data Channel.
@@ -187,6 +191,9 @@ export class RtcChatAdminService {
 
   //determines what happens when datachannel first opens.
   dataChannelOnOpen(user: User) {
+    //add to list of users
+    waitingUsers[user.roomId] = user;
+    console.log("Admin - Added user with id: " + user.roomId);
     //if the room is not manually authenticated and does not have password, authenticate user.
     if (!this.settingsService.getManAuth() && !this.settingsService.getPasswordRequired()) {
       this.authenticateUser(user.roomId);
@@ -199,17 +206,18 @@ export class RtcChatAdminService {
   private authenticateUser(userId: string) {
     //get user from waiting list.
     var user = waitingUsers[userId];
-    //add users to authenticated list.
     users[userId] = user;
-
     if (user == null) {
       console.log("Error during authentication: cannot find user.");
       return;
     }
     //delete user from waiting list.
     try {
-      waitingUsers.splice(waitingUsers.indexOf(waitingUsers[userId]), 1);
+      waitingUsers.splice(waitingUsers.indexOf(waitingUsers[userId]), 1, undefined);
+      //add users to authenticated list.
+      waitingUsersOnChange.next("");
     } catch (err) {
+      this.removeUser(userId);
       console.log("Error during authentication: Failed to delete user form waiting list.");
       return;
     }
@@ -356,11 +364,13 @@ export class RtcChatAdminService {
   //broadcasts messages to all users.
   private broadcast(data: object) {
     users.forEach(function (value) {
-      console.log("Sending message to: " + value.roomId);
-      try {
-        value.datachannel.send(JSON.stringify(data));
-      } catch (err) {
-        console.log("Failed to send message to: " + value.roomId);
+      if (value != undefined) {
+        try {
+          console.log("Sending message to: " + value.roomId);
+          value.datachannel.send(JSON.stringify(data));
+        } catch (err) {
+          console.log("Failed to send message to: " + value.roomId);
+        }
       }
     })
   }
@@ -390,5 +400,54 @@ export class RtcChatAdminService {
       console.log("Ice Gathering: " + value.rtc.iceGatheringState);
       console.log("Data channel: " + value.datachannel.readyState);
     })
+  }
+
+  public getWaitingUsersArray(): Array<User> {
+    return waitingUsers;
+  }
+
+  //user authentication is manually accepted by admin.
+  public authenticationAccept(roomId: string) {
+    //check if user exists in waiting list.
+    if (waitingUsers[roomId]) {
+      //check if password is given by user if room is password protected.
+      if (this.settingsService.getPasswordRequired()) {
+        if (!waitingUsers[roomId].passwordGiven) {
+          //if user hasnt given password, remove user.
+          this.removeUser(roomId);
+          return;
+        }
+      }
+      //authenticate user.
+      this.authenticateUser(roomId);
+    } else {
+      //if user cannot be found. Remove and display error.
+      this.removeUser(roomId);
+      console.log("Authentication Error: user requested cannot be found.");
+    }
+  }
+
+  //user authentication is manually denied by admin.
+  public authenticationDeny(roomId: string) {
+    //check if user exists in waiting list.
+    if (waitingUsers[roomId]) {
+      var sentMessage =
+      {
+        type: 'auth-fail',
+        message: {
+          message: "Administator has denied access to room. Disconnected from room.",
+        },
+      }
+      try {
+        waitingUsers[roomId].datachannel.send(JSON.stringify(sentMessage));
+      } catch (err) {
+        console.log("Authentication Error: Datachannel connection is not open.");
+      }
+      this.removeUser(roomId);
+    } else {
+      //if user cannot be found. Remove and display error.
+      this.removeUser(roomId);
+      console.log("Authentication Error: user requested cannot be found.");
+    }
   }
 }

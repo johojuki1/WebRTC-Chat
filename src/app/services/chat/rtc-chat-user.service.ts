@@ -162,27 +162,30 @@ export class RtcChatUserService {
         {
           type: 'password',
           password: this.settingsService.getPassword(),
-        })
+        }, true)
     }
   }
 
   //when a user clicks the send message button 
-  sendRtcMessage(message) {
+  //error boolean determines if error should show on send failure.
+  sendRtcMessage(message, error: boolean) {
     console.log("sending message: " + message);
     try {
       this.dataChannel.send(JSON.stringify(message));
     } catch (err) {
-      console.log("Failed to send message to admin.");
-      var sentMessage =
-      {
-        type: 'general-message',
-        message: {
-          name: 'admin',
-          message: "Message failed to send.",
-          type: 'info'
-        },
+      if (error) {
+        console.log("Failed to send message to admin.");
+        var sentMessage =
+        {
+          type: 'general-message',
+          message: {
+            name: 'admin',
+            message: "Message failed to send.",
+            type: 'info'
+          },
+        }
+        messagesOut.next(JSON.stringify(sentMessage));
       }
-      messagesOut.next(JSON.stringify(sentMessage));
     }
   };
 
@@ -193,7 +196,7 @@ export class RtcChatUserService {
       this.sendRtcMessage(
         {
           type: 'connection-close',
-        })
+        }, false)
       //close the connection.
       this.dataChannel.close();
       this.adminRtc.close();

@@ -74,6 +74,12 @@ export class UserChatComponent implements OnInit, OnDestroy {
         var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
         this.textAreaChat = '->   ' + chatMessage.message + '\n' + this.textAreaChat;
         this.rtcChatUserService.disconnectRtc();
+        break;
+      case "auth-fail":
+        var chatMessage: Message = <Message>JSON.parse(JSON.stringify(message.message));
+        this.textAreaChat = '->   ' + chatMessage.message + '\n' + this.textAreaChat;
+        this.rtcChatUserService.disconnectRtc();
+        break;
       default:
         console.log("RTC Message not recognised.");
     }
@@ -95,7 +101,7 @@ export class UserChatComponent implements OnInit, OnDestroy {
         {
           type: 'chat-request',
           message: this.inputBoxValue,
-        })
+        }, true)
       this.inputBoxValue = '';
     }
   }

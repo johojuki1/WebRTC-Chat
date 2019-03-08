@@ -1,3 +1,24 @@
+/*
+//SSL 
+
+var fs = require('fs');
+
+// read ssl certificate
+var privateKey = fs.readFileSync('cert/_.jonathan-ho.com_private_key.key', 'utf8');
+var certificate = fs.readFileSync('cert/jonathan-ho.com_ssl_certificate.cer', 'utf8');
+var ca = fs.readFileSync('cert/-.jonathan-ho.com_ssl_certificate_INTERMEDIATE.cer', 'utf8')
+
+var credentials = { key: privateKey, cert: certificate, ca:ca };
+var https = require('https');
+https.globalAgent.options.ca = require('ssl-root-cas/latest').create();
+
+//pass in your credentials to create an https server
+var httpsServer = https.createServer(credentials);
+httpsServer.listen(9090);
+
+//SSL
+*/
+
 //require our websocket library 
 var WebSocketServer = require('ws').Server;
 

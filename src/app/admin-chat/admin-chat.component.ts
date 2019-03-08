@@ -4,6 +4,8 @@ import { SettingsService } from '../services/common/settings.service'
 import { ChatSocketService } from '../services/chat/chatSocket.service'
 import { Message } from '../objects/message'
 import { Router } from '@angular/router';
+import { User } from '../objects/user'
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-admin-chat',
@@ -17,13 +19,16 @@ export class AdminChatComponent implements OnInit, OnDestroy {
   inputBoxValue: string;
   textAreaChat: string = '';
   private socketStatus: string = 'connected';
+  waitingUsers: Array<User> = [];
+
+  subscription: Subscription;
 
   constructor(
-    private rtcChatAdminService: RtcChatAdminService,
     private settingsService: SettingsService,
     private chatSocketService: ChatSocketService,
     private ref: ChangeDetectorRef,
     private router: Router,
+    private rtcChatAdminService: RtcChatAdminService,
   ) { }
 
   ngOnInit() {
@@ -36,9 +41,32 @@ export class AdminChatComponent implements OnInit, OnDestroy {
       this.subscribeSocketStatus();
     }
     this.settingsService.setSubscribed("admin_chat");
+    this.waitingUsers = [];
+    //subscribe to waitingUsers
+    this.rtcChatAdminService.waitingUsersEventCallback$.subscribe(data => {
+      this.updateWaitingUsersArray();
+    })
+
+    //emit value in sequence every 3 second
+    const source = interval(3000);
+    const text = 'Your Text Here';
+    this.subscription = source.subscribe(val => 
+      this.updateWaitingUsersArray());
   }
 
   ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+
+  //create waiting users array. Array needs to be rearranged as HTML does not read array correctly.
+  private updateWaitingUsersArray() {
+    var tmpUsers = this.rtcChatAdminService.getWaitingUsersArray();
+    this.waitingUsers = [];
+    tmpUsers.forEach(user => {
+      if (user != undefined) {
+        this.waitingUsers.push(user);
+      }
+    });
   }
 
   //subscribes to the messges recieved form webRTC connection.
@@ -167,5 +195,33 @@ export class AdminChatComponent implements OnInit, OnDestroy {
 
   showState() {
     this.rtcChatAdminService.showState();
+  }
+
+  authenticationAccept(user) {
+    try {
+      if (user != undefined) {
+        this.rtcChatAdminService.authenticationAccept(user.roomId);
+      } else {
+        this.updateWaitingUsersArray()
+      }
+    } catch (err) {
+      this.updateWaitingUsersArray()
+    }
+  }
+
+  authenticationDeny(user) {
+    try {
+      if (user != undefined) {
+        this.rtcChatAdminService.authenticationDeny(user.roomId);
+      } else {
+        this.updateWaitingUsersArray()
+      }
+    } catch (err) {
+      this.updateWaitingUsersArray()
+    }
+  }
+
+  getManAuthRequired(): boolean {
+    return this.settingsService.getManAuth();
   }
 }

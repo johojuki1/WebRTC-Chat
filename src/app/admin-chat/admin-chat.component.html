@@ -1,18 +1,47 @@
 <!-- app.component.html -->
-<div style="display: inline-block">
-    <h1 style="display: inline-block"> {{ this.getRoomName() }} (ADMIN)
-        <h2>
-            Creator: You
-        </h2>
-    </h1>
-    <button mat-raised-button class="socket" [ngStyle]="{'background-color': getSocketButtonColour()}" (click)="toggleSocket()">
-        {{ this.getSocketText() }}
-    </button>
+<div style="display: block;">
+    <div style="display: inline-block;">
+        <div style="display: inline-block">
+            <h1 style="display: inline-block"> {{ this.getRoomName() }} (ADMIN)
+                <h2>
+                    Creator: You
+                </h2>
+            </h1>
+            <button mat-raised-button class="socket" [ngStyle]="{'background-color': getSocketButtonColour()}"
+                (click)="toggleSocket()">
+                {{ this.getSocketText() }}
+            </button>
+        </div>
+        <ul>
+            <textarea readonly name="chatArea" class="output" [(ngModel)]="textAreaChat" type="text"></textarea>
+        </ul>
+        <ul style="display:inline-block">
+            <textarea class="input" [(ngModel)]="inputBoxValue" (keyup.enter)="onKeyEnter()"></textarea>
+            <button class="send" mat-raised-button color="primary" (click)="sendMessage()">Send</button>
+        </ul>
+    </div>
 </div>
-<ul>
-    <textarea readonly name="chatArea" class="output" [(ngModel)]="textAreaChat" type="text"></textarea>
-</ul>
-<ul style="display:inline-block">
-    <textarea class="input" [(ngModel)]="inputBoxValue" (keyup.enter)="onKeyEnter()"></textarea>
-    <button class="send" mat-raised-button color="primary" (click)="sendMessage()">Send</button>
-</ul>
+<h3 [hidden]="!getManAuthRequired()">
+    Users Requesting Authentication
+    <table>
+        <tr *ngFor="let user of waitingUsers">
+            <td style="width: 200px;">
+                {{user.username}}
+            </td>
+            <td>
+                <button mat-raised-button class="auth" color="primary" (click)="authenticationAccept(user)">
+                    <i class="material-icons" style="font-size: 20px; position: absolute;
+                        top: 6px;
+                        left: 21px;">done</i>
+                </button>
+            </td>
+            <td>
+                <button mat-raised-button class="auth" color="primary" (click)="authenticationDeny(user)">
+                    <i class="material-icons" style="font-size: 20px; position: absolute;
+                        top: 6px;
+                        left: 21px;">clear</i>
+                </button>
+            </td>
+        </tr>
+    </table>
+</h3>
