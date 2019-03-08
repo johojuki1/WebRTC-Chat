@@ -29,5 +29,11 @@ NOTE
     You may have to setup HTTPs for both the Node server and Angular server. 
     The code for setting up HTTPs for the node server is commented out at the top of the server.js file.
     You will have to confirm and secure your own security certificate.
+3. Local and TURN server assisted connections will always function but direct peer-to-peer is not guarenteed.
+    Due to WebRTC's interactions with ISP NATs WebRTC may fail to connect to other peers.
+    This is completely dependant on the ISP's NAT settings of the connections utilised.
+    You can check if your Internet connection is direct peer-to-peer WebRTC capable here: https://test.webrtc.org/
+    Under 'Connectivity' if 'Reflexive Connectivity' does not have a green 'tick' the connection is not peer-to-peer compatable.
+    On this occasion TURN servers will need to be added to the Angular server in: "settings.service.ts" located from Root directory in src/services/common.
 
 First is the javascript server: server.js located in the  
